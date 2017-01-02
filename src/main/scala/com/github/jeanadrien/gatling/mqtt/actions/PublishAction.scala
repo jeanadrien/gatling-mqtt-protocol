@@ -61,6 +61,8 @@ class PublishAction (
                 None,
                 Some(th.getMessage)
             )
+
+            next ! session
         })
     })
 }

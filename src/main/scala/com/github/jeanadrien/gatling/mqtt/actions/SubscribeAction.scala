@@ -48,7 +48,7 @@ class SubscribeAction(
             next ! session
         } onFailure { th =>
             val subscribeTimings = timings(requestStartDate)
-            logger.warn(s"${connectionId}: Failed to SUBSRIBE on ${resolvedTopic}: ${th}")
+            logger.warn(s"${connectionId}: Failed to SUBSCRIBE on ${resolvedTopic}: ${th}")
 
             statsEngine.logResponse(
                 session,

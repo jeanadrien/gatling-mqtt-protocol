@@ -25,7 +25,7 @@ It is also possible to use the plugin on [Flood.io](https://flood.io/).
 Please refer to the ad-hoc [documentation](https://help.flood.io/docs/custom-libraries-on-grid-nodes) on how to
 add custom library to Flood IO.
 
-## Usage
+## Documentation
 
 ### Quickstart
 
@@ -57,7 +57,7 @@ setUp(
     .protocols(mqttConf)
 ```
 
-The above _Scenario_ will connects up to 5000 MQTT clients to localhost MQTT server at a rate of 500 clients per minute.
+The above _Scenario_ will connects up to 5000 MQTT clients to your localhost MQTT server at a rate of 500 clients per minute.
 Each connected client will _SUBSCRIBE_ to `myTopic` and then perform one _PUBLISH_ on that same `myTopic` topic each
 second. Therefore, the resulting performance test ramps up from 0 to 300k _PUBLISH_ rpm. 
 
@@ -113,7 +113,8 @@ receives their notifications.
 
 #### Connect options
 
-The `connect` action provides the following options using _method chaining_ :
+The `connect` action provides the following options using _method chaining_. They are a subset of the protocol
+configuration options described here above and they allow to have different client settings using e.g. a gatling _feeder_. 
 
 * `clientId(clientId: Expression[String])` :
 * `cleanSession(cleanSession: Boolean)` :
@@ -126,37 +127,47 @@ The `connect` action provides the following options using _method chaining_ :
 
 #### Subscribe options
 
-The `subscribe` action provides the following options using _method chaining_ :
+The `subscribe` action provides the following MQTT options using _method chaining_ :
 
-* `qosAtMostOnce` :
-* `qosAtLeastOnce` :
-* `qosExactlyOnce` :
+* `qosAtMostOnce` : Ask for a _QoS_ of 0 (at most once) for the subscribed topic. 
+* `qosAtLeastOnce` : Ask for a _QoS_ of 1 (at least once) for the subscribed topic.
+* `qosExactlyOnce` : Ask for a _QoS_ of 2 (exactly once) for the subscribed topic.
 
 
 #### Publish, publishAndWait, publishAndMeasure options
 
 The `publish`, `publishAndWait` and `publishAndMeasure` actions provide the following options using _method chaining_
 
-* `qosAtMostOnce` :
-* `qosAtLeastOnce` :
-* `qosExactlyOnce` :
-* `retain(newRetain : Boolean)` :
+* `qosAtMostOnce` : Publish with a _QoS_ of 0 (at most once).
+* `qosAtLeastOnce` : Publish with a _QoS_ of 1 (at least once).
+* `qosExactlyOnce` : Publish with a _QoS_ of 2 (exactly once).
+* `retain(newRetain : Boolean)` : Set the retain flag of the _PUBLISH_ command. Default: false.
 
 Additionally `publishAndWait` and `publishAndMeasure` provides useful options to define how to _validate_ the
 feedback notification receivied from the server.
 
-* `payloadFeedback(fn : Array[Byte] => Array[Byte] => Boolean)` :
-* `timeout(duration : FiniteDuration)` :
+* `payloadFeedback(fn : Array[Byte] => Array[Byte] => Boolean)` : Define the comparison function to use when notifications
+are received on the subscribed topic. The default function compares each byte of the payload.
+* `timeout(duration : FiniteDuration)` : Timeout before failure.
 
 #### WaitForMessages options
 
-* `timeout(duration : FiniteDuration)` :
+* `timeout(duration : FiniteDuration)` : Timeout duration.
 
 ### Note about metrics
 
-### Examples
+The time measured for the different actions is:
 
-+ link to examples
+* `connect` : Time to get connected CONACK. Note that the connection is automatically retried, and a single _connect_
+action an potentially lead to several _KO_ requests in the statistics.
+* `subscribe` : Time to get the SUBACK message back from the server
+* `publish` : Time to perform the full PUBLISH negotiation, it depends of the selected QoS. 
+* `publishAndWait` : Time to perform the publish and receive the notification on the topic. Upper bound is the configured _timeout_
+* `publishAndMeasure` : Time to perform the publish and receive the notification on the topic. Upper bound is the configured _timeout_
+
+## Examples
+
+You can find Simulation examples in the [test directory](test/scala)
 
 ## Compatibility
 
@@ -167,11 +178,16 @@ Older versions of Gatling are not supported.
 
 ## Acknowledgments
 
-_Gatling-MQTT-Protocol_ is a rewrite of [Gatling-MQTT](https://github.com/mnogu/gatling-mqtt). This extended version 
-introduces MQTT actions and allows to customize the behaviour of MQTT clients during the performance tests. 
-The plugin configuration API is widely compliant with by _Gatling-MQTT_
+_Gatling-MQTT-Protocol_ is a rewrite of [Gatling-MQTT](https://github.com/mnogu/gatling-mqtt) plugin which provides a mqtt connect+publish
+stress test also based on _Fusesource_ MQTT Client. 
 
-* Thanks to [@verakruhliakova](https://github.com/verakruhliakova) for the initial Gatling 2.1 version.
+This extended plugin increases the flexibility in the MQTT scenario. It enables MQTT actions and thus it allows measurement 
+ of server performance at a command level. It also provides tools to customize 
+ the behaviour of the MQTT clients during the performance tests. 
+
+The protocol configuration DSL is widely compliant with by _Gatling-MQTT_
+
+* Thanks to [@verakruhliakova](https://github.com/verakruhliakova) who wrote the initial version for Gatling 2.1.
 * Thanks to [EVRYTHNG](https://evrythng.com/) for the use cases and the testing.
 
 ## License

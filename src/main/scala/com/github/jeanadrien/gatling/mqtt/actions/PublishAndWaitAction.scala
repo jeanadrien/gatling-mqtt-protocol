@@ -48,7 +48,7 @@ class PublishAndWaitAction(
 
         val requestStartDate = nowMillis
 
-        val requestName = "publishedAndWait"
+        val requestName = "publish and wait"
 
         logger.debug(s"${connectionId} : Execute ${requestName} Payload: ${resolvedPayload}")
 
@@ -82,28 +82,10 @@ class PublishAndWaitAction(
         }
 
         connection.publish(resolvedTopic, resolvedPayload, qos, retain, Callback.onSuccess[Void] { _ =>
-            val publishTimings = timings(requestStartDate)
-
-            statsEngine.logResponse(
-                session,
-                "publish",
-                publishTimings,
-                OK,
-                None,
-                None
-            )
+            // nop
         } onFailure { th =>
-            val publishTimings = timings(requestStartDate)
             logger.warn(s"${connectionId}: Failed to publish on ${resolvedTopic}: ${th}")
-
-            statsEngine.logResponse(
-                session,
-                "publish",
-                publishTimings,
-                KO,
-                None,
-                Some(th.getMessage)
-            )
+            statsEngine.reportUnbuildableRequest(session, "publish", th.getMessage)
         })
     })
 }

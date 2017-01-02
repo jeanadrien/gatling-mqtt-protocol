@@ -47,7 +47,7 @@ class PublishAndMeasureAction(
     } yield {
         val requestStartDate = nowMillis
 
-        val requestName = "publishAndMeasure"
+        val requestName = "publish and measure"
 
         logger.debug(s"${connectionId} : Execute ${requestName}:${resolvedTopic} Payload: ${resolvedPayload}")
 
@@ -82,32 +82,12 @@ class PublishAndMeasureAction(
 
         connection.publish(resolvedTopic, resolvedPayload, qos, retain, Callback
             .onSuccess[Void] { _ =>
-            val publishTimings = timings(requestStartDate)
-
-            statsEngine.logResponse(
-                session,
-                "publish",
-                publishTimings,
-                OK,
-                None,
-                None
-            )
 
             next ! session
 
         } onFailure { th =>
-            val publishTimings = timings(requestStartDate)
             logger.warn(s"${connectionId}: Failed to publish on ${resolvedTopic}: ${th}")
-
-            statsEngine.logResponse(
-                session,
-                "publish",
-                publishTimings,
-                KO,
-                None,
-                Some(th.getMessage)
-            )
-
+            statsEngine.reportUnbuildableRequest(session, "publish", th.getMessage)
         })
     })
 }

@@ -9,7 +9,7 @@ import io.gatling.core.structure.ScenarioContext
   */
 abstract class MqttActionBuilder extends ActionBuilder {
 
-    def mqttComponents(ctx: ScenarioContext) : MqttComponents =
+    def mqttComponents(ctx : ScenarioContext) : MqttComponents =
         ctx.protocolComponentsRegistry.components(MqttProtocol.MqttProtocolKey)
 
 }

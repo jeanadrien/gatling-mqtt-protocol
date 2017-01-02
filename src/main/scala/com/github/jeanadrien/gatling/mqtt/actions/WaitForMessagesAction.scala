@@ -6,19 +6,19 @@ import akka.util.Timeout
 import com.github.jeanadrien.gatling.mqtt.protocol.MqttComponents
 import io.gatling.core.CoreComponents
 import io.gatling.core.action.Action
-import io.gatling.core.session.{Session, _}
+import io.gatling.core.session.Session
 
-import scala.concurrent.duration.{FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
 
 /**
   *
   */
-class WaitForMessagesAction (
-    mqttComponents: MqttComponents,
-    coreComponents: CoreComponents,
+class WaitForMessagesAction(
+    mqttComponents : MqttComponents,
+    coreComponents : CoreComponents,
     timeout : FiniteDuration,
-    val next  : Action
+    val next : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     import MessageListenerActor._
@@ -27,7 +27,7 @@ class WaitForMessagesAction (
 
     override val name = genName("mqttWaitForMessage")
 
-    override def execute(session: Session): Unit = recover(session)(for {
+    override def execute(session : Session) : Unit = recover(session)(for {
         listener <- session("listener").validate[ActorRef]
         connectionId <- session("connectionId").validate[String]
     } yield {

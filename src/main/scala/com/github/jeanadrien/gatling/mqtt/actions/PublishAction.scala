@@ -1,7 +1,5 @@
 package com.github.jeanadrien.gatling.mqtt.actions
 
-import java.nio.charset.{StandardCharsets}
-
 import com.github.jeanadrien.gatling.mqtt.protocol.MqttComponents
 import io.gatling.commons.stats.{KO, OK}
 import io.gatling.commons.util.ClockSingleton._
@@ -13,19 +11,19 @@ import org.fusesource.mqtt.client.{CallbackConnection, QoS}
 /**
   *
   */
-class PublishAction (
+class PublishAction(
     mqttComponents : MqttComponents,
     coreComponents : CoreComponents,
-    topic: Expression[String],
-    payload: Expression[Array[Byte]],
-    qos: QoS,
-    retain: Boolean,
-    val next : Action
+    topic          : Expression[String],
+    payload : Expression[Array[Byte]],
+    qos            : QoS,
+    retain : Boolean,
+    val next       : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     override val name = genName("mqttPublish")
 
-    override def execute(session: Session): Unit = recover(session) (for {
+    override def execute(session : Session) : Unit = recover(session)(for {
         connection <- session("connection").validate[CallbackConnection]
         connectionId <- session("connectionId").validate[String]
         resolvedTopic <- topic(session)

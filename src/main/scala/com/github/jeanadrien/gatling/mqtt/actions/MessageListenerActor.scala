@@ -7,6 +7,7 @@ import com.typesafe.scalalogging.StrictLogging
   *
   */
 class MessageListenerActor(connectionId : String) extends Actor with StrictLogging {
+
     import MessageListenerActor._
 
     import scala.collection.mutable.{ArrayBuffer, HashMap}
@@ -15,13 +16,13 @@ class MessageListenerActor(connectionId : String) extends Actor with StrictLoggi
 
     private var waitingForClose : Option[ActorRef] = None
 
-    def numPending: Int = pending.values.foldLeft(0)((acc, xs) => acc + xs.length)
+    def numPending : Int = pending.values.foldLeft(0)((acc, xs) => acc + xs.length)
 
-    private def addPending(topic: String, payloadValidation: Array[Byte] => Boolean, sender: ActorRef): Unit = {
+    private def addPending(topic : String, payloadValidation : Array[Byte] => Boolean, sender : ActorRef) : Unit = {
         pending.getOrElseUpdate(topic, ArrayBuffer[(Array[Byte] => Boolean, ActorRef)]()).+=:(payloadValidation, sender)
     }
 
-    private def removePending(topic: String, payloadValidation: Array[Byte] => Boolean): Unit = {
+    private def removePending(topic : String, payloadValidation : Array[Byte] => Boolean) : Unit = {
         pending.get(topic).foreach { buff =>
             logger.debug(s"removePending: Topic ${topic}: buff size before filtering: ${buff.length}")
             buff.filterNot(_._1 == payloadValidation) match {
@@ -36,7 +37,7 @@ class MessageListenerActor(connectionId : String) extends Actor with StrictLoggi
         areWeDone()
     }
 
-    private def areWeDone(): Unit = {
+    private def areWeDone() : Unit = {
         if (waitingForClose.isDefined && pending.isEmpty) {
             waitingForClose.foreach(_ ! None)
             waitingForClose = None
@@ -53,7 +54,7 @@ class MessageListenerActor(connectionId : String) extends Actor with StrictLoggi
         case CancelWaitForMessage(topic, payloadValidation) =>
             removePending(topic, payloadValidation)
         case MqttReceive(topic, payload) =>
-            pending.get(topic).foreach(_.partition { case(predicate, _) =>
+            pending.get(topic).foreach(_.partition { case (predicate, _) =>
                 predicate(payload)
             } match {
                 case (Seq(), xs) =>
@@ -84,11 +85,15 @@ class MessageListenerActor(connectionId : String) extends Actor with StrictLoggi
 }
 
 object MessageListenerActor {
+
     // actor messages
     case class WaitForMessage(topic : String, payloadValidation : Array[Byte] => Boolean)
+
     case class CancelWaitForMessage(topic : String, payloadValidation : Array[Byte] => Boolean)
+
     case class MqttReceive(topic : String, payload : Array[Byte])
+
     case object WaitForAllReceived
 
-    def props(connectionId: String): Props = Props(new MessageListenerActor(connectionId))
+    def props(connectionId : String) : Props = Props(new MessageListenerActor(connectionId))
 }

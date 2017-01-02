@@ -18,7 +18,7 @@ $ sbt assembly
 2. Copy the _jar_ built into your Gatling library directory
 
 ```bash
-$ cp target/scala-2.11/gatling-mqtt-protocol-assembly-{VERSION}.jar ${GATLING_HOME}/lib`
+$ cp target/scala-2.11/gatling-mqtt-protocol-assembly-{VERSION}.jar ${GATLING_HOME}/lib
 ```
 
 It is also possible to use the plugin on [Flood.io](https://flood.io/). 
@@ -175,6 +175,12 @@ Here is the _Gatling-MQTT-Protocol_ vs. _Gatling_ version compatibility table.
 Older versions of Gatling are not supported.
 
 * [v1.0] is built with Gatling sources _v2.2.3_. 
+
+## Contributing
+
+Yes, please. Feature requests, bug report and fixes, comments.
+
+Please also use this [code style](gatling-mqtt-protocol-style.xml) file for IntelliJ
 
 ## Acknowledgments
 

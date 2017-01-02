@@ -1,10 +1,7 @@
 package com.github.jeanadrien.gatling.mqtt.actions
 
-import java.nio.charset.StandardCharsets
-
 import akka.actor.ActorRef
 import akka.pattern.AskTimeoutException
-import MessageListenerActor.WaitForMessage
 import akka.util.Timeout
 import com.github.jeanadrien.gatling.mqtt.protocol.MqttComponents
 import io.gatling.commons.stats.{KO, OK}
@@ -21,15 +18,15 @@ import scala.util.{Failure, Success}
   *
   */
 class PublishAndMeasureAction(
-    mqttComponents: MqttComponents,
-    coreComponents: CoreComponents,
-    topic: Expression[String],
-    payload: Expression[Array[Byte]],
-    payloadFeedback: Array[Byte] => Array[Byte] => Boolean,
-    qos: QoS,
-    retain: Boolean,
-    timeout : FiniteDuration,
-    val next  : Action
+    mqttComponents : MqttComponents,
+    coreComponents : CoreComponents,
+    topic : Expression[String],
+    payload       : Expression[Array[Byte]],
+    payloadFeedback : Array[Byte] => Array[Byte] => Boolean,
+    qos           : QoS,
+    retain        : Boolean,
+    timeout       : FiniteDuration,
+    val next      : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     import MessageListenerActor._
@@ -38,7 +35,7 @@ class PublishAndMeasureAction(
 
     override val name = genName("mqttPublishAndMeasure")
 
-    override def execute(session: Session): Unit = recover(session)(for {
+    override def execute(session : Session) : Unit = recover(session)(for {
         connection <- session("connection").validate[CallbackConnection]
         listener <- session("listener").validate[ActorRef]
         connectionId <- session("connectionId").validate[String]
@@ -70,7 +67,8 @@ class PublishAndMeasureAction(
                         logger.warn(s"${connectionId}: Wait for PUBLISH back from mqtt timed out on ${resolvedTopic}")
                         Some("Wait for PUBLISH timed out")
                     case Failure(t) =>
-                        logger.warn(s"${connectionId}: Failed to receive PUBLISH back from mqtt on ${resolvedTopic}: ${t}")
+                        logger
+                            .warn(s"${connectionId}: Failed to receive PUBLISH back from mqtt on ${resolvedTopic}: ${t}")
                         Some(t.getMessage)
                 }
             )

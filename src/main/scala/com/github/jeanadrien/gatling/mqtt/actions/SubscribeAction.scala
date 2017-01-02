@@ -1,12 +1,12 @@
 package com.github.jeanadrien.gatling.mqtt.actions
 
 import com.github.jeanadrien.gatling.mqtt.protocol.MqttComponents
-import org.fusesource.mqtt.client.{CallbackConnection, QoS, Topic}
-import io.gatling.commons.util.ClockSingleton._
 import io.gatling.commons.stats._
+import io.gatling.commons.util.ClockSingleton._
 import io.gatling.core.CoreComponents
 import io.gatling.core.action.Action
 import io.gatling.core.session._
+import org.fusesource.mqtt.client.{CallbackConnection, QoS, Topic}
 
 /**
   *
@@ -14,14 +14,14 @@ import io.gatling.core.session._
 class SubscribeAction(
     mqttComponents : MqttComponents,
     coreComponents : CoreComponents,
-    topic: Expression[String],
-    qos: QoS,
-    val next : Action
+    topic : Expression[String],
+    qos            : QoS,
+    val next       : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     override val name = genName("mqttSubscribe")
 
-    override def execute(session: Session): Unit = recover(session) (for {
+    override def execute(session : Session) : Unit = recover(session)(for {
         connection <- session("connection").validate[CallbackConnection]
         connectionId <- session("connectionId").validate[String]
         resolvedTopic <- topic(session)

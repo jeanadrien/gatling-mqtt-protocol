@@ -2,9 +2,9 @@ package com.github.jeanadrien.gatling.mqtt.actions
 
 import com.github.jeanadrien.gatling.mqtt.protocol.{ConnectionSettings, MqttComponents}
 import io.gatling.commons.stats._
+import io.gatling.commons.util.ClockSingleton._
 import io.gatling.core.CoreComponents
 import io.gatling.core.Predef._
-import io.gatling.commons.util.ClockSingleton._
 import io.gatling.core.action.Action
 
 /**
@@ -14,19 +14,20 @@ class ConnectAction(
     mqttComponents : MqttComponents,
     coreComponents : CoreComponents,
     connectionSettings : ConnectionSettings,
-    val next: Action
+    val next : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     override val name = genName("mqttConnect")
 
-    override def execute(session: Session): Unit = recover(session) {
+    override def execute(session : Session) : Unit = recover(session) {
         mqttComponents.mqttEngine(session, connectionSettings).flatMap { mqtt =>
             val connectionId = genName("mqttConnection")
 
             val requestName = "connect"
             logger.debug(s"${connectionId}: Execute ${requestName}")
 
-            val messageListener = mqttComponents.system.actorOf(MessageListenerActor.props(connectionId), "ml-"+connectionId)
+            val messageListener = mqttComponents.system
+                .actorOf(MessageListenerActor.props(connectionId), "ml-" + connectionId)
 
             // connect
             val requestStartDate = nowMillis

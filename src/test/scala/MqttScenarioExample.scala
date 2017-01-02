@@ -1,5 +1,6 @@
 import com.github.jeanadrien.gatling.mqtt.Predef._
 import io.gatling.core.Predef._
+
 import scala.concurrent.duration._
 
 /**

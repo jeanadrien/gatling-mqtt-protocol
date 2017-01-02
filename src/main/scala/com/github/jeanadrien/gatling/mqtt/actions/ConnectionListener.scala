@@ -10,8 +10,6 @@ import org.fusesource.mqtt.client.Listener
   */
 class ConnectionListener(val connectionId : String, actor : ActorRef) extends Listener with StrictLogging {
 
-    // TODO move this in another package
-
     import MessageListenerActor._
 
     override def onPublish(

@@ -21,12 +21,15 @@ class MessageListenerActor(connectionId : String) extends Actor with StrictLoggi
         pending.getOrElseUpdate(topic, ArrayBuffer[(Array[Byte] => Boolean, ActorRef)]()).+=:(payloadValidation, sender)
     }
 
-    private def removePending(topic: String, sender: ActorRef): Unit = {
+    private def removePending(topic: String, payloadValidation: Array[Byte] => Boolean): Unit = {
         pending.get(topic).foreach { buff =>
-            buff.filterNot(_._2 == sender) match {
+            logger.debug(s"removePending: Topic ${topic}: buff size before filtering: ${buff.length}")
+            buff.filterNot(_._1 == payloadValidation) match {
                 case Seq() =>
+                    logger.debug(s"removePending: Topic ${topic} is now empty")
                     pending.remove(topic)
                 case xs =>
+                    logger.debug(s"removePending: Topic ${topic} now has ${xs.length} items")
                     pending.put(topic, xs)
             }
         }
@@ -47,9 +50,8 @@ class MessageListenerActor(connectionId : String) extends Actor with StrictLoggi
             } else {
                 addPending(topic, payloadValidation, sender())
             }
-        case CancelWaitForMessage(topic) =>
-            // TODO do we use this in the end ?
-            removePending(topic, sender())
+        case CancelWaitForMessage(topic, payloadValidation) =>
+            removePending(topic, payloadValidation)
         case MqttReceive(topic, payload) =>
             pending.get(topic).foreach(_.partition { case(predicate, _) =>
                 predicate(payload)
@@ -84,7 +86,7 @@ class MessageListenerActor(connectionId : String) extends Actor with StrictLoggi
 object MessageListenerActor {
     // actor messages
     case class WaitForMessage(topic : String, payloadValidation : Array[Byte] => Boolean)
-    case class CancelWaitForMessage(topic : String)
+    case class CancelWaitForMessage(topic : String, payloadValidation : Array[Byte] => Boolean)
     case class MqttReceive(topic : String, payload : Array[Byte])
     case object WaitForAllReceived
 

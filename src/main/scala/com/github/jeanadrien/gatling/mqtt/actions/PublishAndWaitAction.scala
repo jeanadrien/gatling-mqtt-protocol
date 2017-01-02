@@ -74,6 +74,10 @@ class PublishAndWaitAction(
                 }
             )
 
+            if (result.isFailure) {
+                listener ! CancelWaitForMessage(resolvedTopic, payloadCheck)
+            }
+
             next ! session
         }
 

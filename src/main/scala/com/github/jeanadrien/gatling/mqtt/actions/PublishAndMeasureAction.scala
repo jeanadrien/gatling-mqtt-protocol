@@ -74,6 +74,10 @@ class PublishAndMeasureAction(
                         Some(t.getMessage)
                 }
             )
+
+            if (result.isFailure) {
+                listener ! CancelWaitForMessage(resolvedTopic, payloadCheck)
+            }
         }
 
         connection.publish(resolvedTopic, resolvedPayload, qos, retain, Callback

@@ -173,7 +173,7 @@ retried, and a single _connect_ action can potentially lead to several _KO_ requ
 
 ## Examples
 
-You can find Simulation examples in the [test directory](test/scala)
+You can find Simulation examples in the [test directory](src/test/scala)
 
 ## Compatibility
 

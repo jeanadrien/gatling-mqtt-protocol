@@ -2,7 +2,7 @@ name := "gatling-mqtt-protocol"
 
 scalaVersion := "2.11.8"
 
-version := "1.0-SNAPSHOT"
+version := "1.0"
 
 libraryDependencies += "io.gatling" % "gatling-core" % "2.2.3" % "provided"
 libraryDependencies += "org.fusesource.mqtt-client" % "mqtt-client" % "1.14"

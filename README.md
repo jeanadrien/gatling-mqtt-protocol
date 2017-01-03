@@ -1,13 +1,16 @@
 # Gatling-MQTT-Protocol
 
-_Gatling-MQTT-Protocol_ is an unofficial plugin for the [Gatling](http://gatling.io) load testing framework which enables 
-to run performance tests using the [MQTT](http://mqtt.org/) pub/sub protocol.
+_Gatling-MQTT-Protocol_ is an unofficial plugin for the [Gatling](http://gatling.io) load testing framework.
+ It enables usage and measurement of performances of services using [MQTT](http://mqtt.org/) pub/sub protocol.
 
-It is based on _Fusesource_ MQTT Java [client](https://github.com/fusesource/mqtt-client)
+The plugin provides gatling actions corresponding to the high level commands of the MQTT protocol.
+ This allows better measurement of the MQTT server performance, and customizable scenario. 
+ 
+The client run by the plugin is _Fusesource_ MQTT Java [client](https://github.com/fusesource/mqtt-client)
 
 ## Installation
 
-Locally, build and add the plugin into the `lib` directory of your Gatling installation
+Locally, build and add the plugin into the `lib` directory of Gatling home.
 
 1. Checkout the code, and build the plugin using [sbt](http://www.scala-sbt.org/)
 
@@ -15,7 +18,7 @@ Locally, build and add the plugin into the `lib` directory of your Gatling insta
 $ sbt assembly
 ```
 
-2. Copy the _jar_ built into your Gatling library directory
+2. Copy the generated _jar_ into the Gatling library directory
 
 ```bash
 $ cp target/scala-2.11/gatling-mqtt-protocol-assembly-{VERSION}.jar ${GATLING_HOME}/lib
@@ -29,6 +32,9 @@ add custom library to Flood IO.
 
 ### Quickstart
 
+_Gatling-MQTT-Protocol_ plugin provides a _protocol configuration_ and multiple _actions_ to build
+a Gatling simulation.
+
 1. Import the following packages into your Simulation file
 
 ```scala
@@ -37,13 +43,13 @@ import io.gatling.core.Predef._
 import scala.concurrent.duration._
 ```
 
-2. Configure your MQTT Clients.
+2. Configure the MQTT Client.
 
 ```scala
 val mqttConf = mqtt.host("tcp://localhost:1883")
 ```
 
-3. Describe your _Scenario_ in your simulation file.
+3. Define your _Scenario_ in your simulation file using provided _actions_.
 
 ```scala
 val scn = scenario("MQTT Test")
@@ -52,78 +58,78 @@ val scn = scenario("MQTT Test")
             .during(20 minutes) {
                 pace(1 second).exec(publish("myTopic", "myPayload"))
             }
-setUp(
-    scn.inject(rampUsers(5000) over (10 minutes)))
-    .protocols(mqttConf)
+setUp(scn.inject(rampUsers(5000) over (10 minutes))).protocols(mqttConf)
 ```
 
-The above _Scenario_ will connects up to 5000 MQTT clients to your localhost MQTT server at a rate of 500 clients per minute.
-Each connected client will _SUBSCRIBE_ to `myTopic` and then perform one _PUBLISH_ on that same `myTopic` topic each
+The above _Scenario_ connects up to 5000 MQTT clients to your localhost MQTT server at a rate of 500 clients per minute.
+Each connected client subscribes to `myTopic` and then issues one _PUBLISH_ command on that same `myTopic` topic each
 second. Therefore, the resulting performance test ramps up from 0 to 300k _PUBLISH_ rpm. 
 
-### MQTT Protocol configuraion
+### MQTT Protocol configuration
 
-These options are configurable using _method chaining_ on the `mqtt` object. They are wrappers on to the _Fusesource MQTT-Client_ 
-options: https://github.com/fusesource/mqtt-client#controlling-mqtt-options.
+These options are configurable using _method chaining_ on the `mqtt` object. They are wrappers around the _Fusesource MQTT-Client_ 
+options: https://github.com/fusesource/mqtt-client#controlling-mqtt-options. 
 
-* `host(host: Expression[String])` :
-* `clientId(clientId: Expression[String])` : Default is a random String, and it's probably a good choice in the context
- of load tests, since client ID must be unique.
+* `host(host: Expression[String])`
+* `clientId(clientId: Expression[String])` : Default is a random String, and it is probably a good choice in the context
+ of load tests since client ID must be unique.
 * `cleanSession(cleanSession: Boolean)` : Default is true
-* `keepAlive(keepAlive: Short)` : Interval in seconds between client _PING_ messages. Default is 30
-* `userName(userName: Expression[String])` :
-* `password(password: Expression[String])` :
-* `willTopic(willTopic: Expression[String])` :
-* `willMessage(willMessage: Expression[String])` :
-* `willQos(willQos: QoS)` :
-* `willRetain(willRetain: Boolean)` :
-* `version(version: Expression[String])` : Default is 3.1
-* `connectAttemptsMax(connectAttemptsMax: Long)` :
-* `reconnectAttemptsMax(reconnectAttemptsMax: Long)` :
-* `reconnectDelay(reconnectDelay: Long)` :
-* `reconnectDelayMax(reconnectDelayMax: Long)` :
-* `reconnectBackOffMultiplier(reconnectBackOffMultiplier: Double)` :
-* `receiveBufferSize(receiveBufferSize: Int)` :
-* `sendBufferSize(sendBufferSize: Int)` :
-* `trafficClass(trafficClass: Int)` :
-* `maxReadRate(maxReadRate: Int)` :
-* `maxWriteRate(maxWriteRate: Int)` :
+* `keepAlive(keepAlive: Short)` : Interval in seconds between client _PINGREQ_ messages. Default is 30
+* `userName(userName: Expression[String])`
+* `password(password: Expression[String])`
+* `willTopic(willTopic: Expression[String])`
+* `willMessage(willMessage: Expression[String])`
+* `willQos(willQos: QoS)`
+* `willRetain(willRetain: Boolean)`
+* `version(version: Expression[String])` : MQTT protocol version. Default is 3.1
+* `connectAttemptsMax(connectAttemptsMax: Long)`
+* `reconnectAttemptsMax(reconnectAttemptsMax: Long)`
+* `reconnectDelay(reconnectDelay: Long)`
+* `reconnectDelayMax(reconnectDelayMax: Long)`
+* `reconnectBackOffMultiplier(reconnectBackOffMultiplier: Double)`
+* `receiveBufferSize(receiveBufferSize: Int)`
+* `sendBufferSize(sendBufferSize: Int)`
+* `trafficClass(trafficClass: Int)`
+* `maxReadRate(maxReadRate: Int)`
+* `maxWriteRate(maxWriteRate: Int)`
 
 ### Scenario actions
 
-_Gatling-MQTT-Protocol_ plugin provides the following scenario actions:
+_Gatling-MQTT-Protocol_ plugin provides the following scenario _actions_:
 
-* `connect` : _CONNECT_ MQTT command. Must run at the beginning of the scenario.
+* `connect` : _CONNECT_ MQTT command. Must run at the beginning of the scenario, before any publish / subscribe actions.
 * `subscribe(topic : Expression[String])` : _SUBSCRIBE_ MQTT command. Client subscribes to one topic.
 * `publish(topic : Expression[String], payload : Expression[Array[Byte]])` : _PUBLISH_ MQTT command. Client publishes
 the given payload on the given topic.
 
-Additionally to this `publish` (and forget) action. The plugin provides two additional publish actions which expects
-an echo from the MQTT server. This allows to measure the round-trip performances of the MQTT server.
-Note that the client __must__ subscribe to the topic first, otherwise the actions will fail with a _timeout_.
+Additionally to this `publish` (and forget) action, two additional publish actions are available. They perform the
+ PUBLISH command and expect to receive an _echo_ notification from the MQTT server on the same _topic_. 
+ These actions are useful to measure the round-trip performances of the MQTT server. I.e. the time between the PUBLISH 
+ command is sent, and the _echo_ PUBLISH command is received back from the server.
+Note that the client __must__ subscribe to the topic first in the Gatling scenario, otherwise the actions will fail with a _timeout_.
 
 * `publishAndWait(topic : Expression[String], payload : Expression[Array[Byte]])` : _PUBLISH_ MQTT command. The action
-does not call the next chained action until the client listener receives the payload. 
+does not call the next chained action until the client listener receives the _echo_ payload. 
 * `publishAndMeasure(topic : Expression[String], payload : Expression[Array[Byte]])` : _PUBLISH_ MQTT command. Unlike
-the _andWait_ version, the next chained action is called immediately after the PUBLISH command. But the plugin waits
-for the update notification from the server and measures the duration of the round-trip.
+the _andWait_ version, the next chained action is called immediately after the PUBLISH command, but the plugin waits
+for the echo notification to measure the duration of the round-trip.
 
-* Last, the plugin provides a `waitForMessages` action which does nothing but waits until all the pending `publishAndMeasure`
-receives their notifications.
+* Last, a `waitForMessages` action is provided to terminate the scenario. It does nothing but waits until all the pending 
+`publishAndMeasure` actions receive their notifications.
 
 #### Connect options
 
 The `connect` action provides the following options using _method chaining_. They are a subset of the protocol
-configuration options described here above and they allow to have different client settings using e.g. a gatling _feeder_. 
+configuration options described here above and allow _threads_ to connect with different client settings e.g. by using a gatling _feeder_. 
 
-* `clientId(clientId: Expression[String])` :
-* `cleanSession(cleanSession: Boolean)` :
-* `userName(userName: Expression[String])` :
-* `password(password: Expression[String])` :
-* `willTopic(willTopic: Expression[String])` :
-* `willMessage(willMessage: Expression[String])` :
-* `willQos(willQos: QoS)` :
-* `willRetain(willRetain: Boolean)` :
+* `clientId(clientId: Expression[String])`
+* `cleanSession(cleanSession: Boolean)`
+* `userName(userName: Expression[String])`
+* `password(password: Expression[String])`
+* `willTopic(willTopic: Expression[String])`
+* `willMessage(willMessage: Expression[String])`
+* `willQos(willQos: QoS)`
+* `willRetain(willRetain: Boolean)`
 
 #### Subscribe options
 
@@ -144,7 +150,7 @@ The `publish`, `publishAndWait` and `publishAndMeasure` actions provide the foll
 * `retain(newRetain : Boolean)` : Set the retain flag of the _PUBLISH_ command. Default: false.
 
 Additionally `publishAndWait` and `publishAndMeasure` provides useful options to define how to _validate_ the
-feedback notification receivied from the server.
+feedback notification received from the server.
 
 * `payloadFeedback(fn : Array[Byte] => Array[Byte] => Boolean)` : Define the comparison function to use when notifications
 are received on the subscribed topic. The default function compares each byte of the payload.
@@ -158,10 +164,10 @@ are received on the subscribed topic. The default function compares each byte of
 
 The time measured for the different actions is:
 
-* `connect` : Time to get connected CONACK. Note that the connection is automatically retried, and a single _connect_
-action an potentially lead to several _KO_ requests in the statistics.
-* `subscribe` : Time to get the SUBACK message back from the server
-* `publish` : Time to perform the full PUBLISH negotiation, it depends of the selected QoS. 
+* `connect` : Time to get successfully connected. Note that in case of connection failure, the connection is automatically 
+retried, and a single _connect_ action can potentially lead to several _KO_ requests in the statistics.
+* `subscribe` : Time to get the _SUBACK_ message back from the server
+* `publish` : Time to perform the full _PUBLISH_ negotiation, the amount of commands necessary depends of the selected _QoS_. 
 * `publishAndWait` : Time to perform the publish and receive the notification on the topic. Upper bound is the configured _timeout_
 * `publishAndMeasure` : Time to perform the publish and receive the notification on the topic. Upper bound is the configured _timeout_
 
@@ -172,24 +178,22 @@ You can find Simulation examples in the [test directory](test/scala)
 ## Compatibility
 
 Here is the _Gatling-MQTT-Protocol_ vs. _Gatling_ version compatibility table.
-Older versions of Gatling are not supported.
+Note that Gatling v2.1 is not supported.
 
 * [v1.0] is built with Gatling sources _v2.2.3_. 
 
 ## Contributing
 
-Yes, please. Feature requests, bug report and fixes, comments.
+Yes, please. Feature requests, bug reports, fixes, comments.
 
-Please also use this [code style](gatling-mqtt-protocol-style.xml) file for IntelliJ
+Please use this [code style](gatling-mqtt-protocol-style.xml) file for IntelliJ
 
 ## Acknowledgments
 
-_Gatling-MQTT-Protocol_ is a rewrite of [Gatling-MQTT](https://github.com/mnogu/gatling-mqtt) plugin which provides a mqtt connect+publish
-stress test also based on _Fusesource_ MQTT Client. 
+_Gatling-MQTT-Protocol_ is a rewrite of [Gatling-MQTT](https://github.com/mnogu/gatling-mqtt) plugin. Another unofficial
+ Gatling plugin which provides a MQTT connect+publish stress test, also based on _Fusesource_ MQTT Client. 
 
-This extended plugin increases the flexibility in the MQTT scenario. It enables MQTT actions and thus it allows measurement 
- of server performance at a command level. It also provides tools to customize 
- the behaviour of the MQTT clients during the performance tests. 
+In this extended version, we aim to increase flexibility in MQTT scenario and provide better performance metrics.
 
 The protocol configuration DSL is widely compliant with by _Gatling-MQTT_
 

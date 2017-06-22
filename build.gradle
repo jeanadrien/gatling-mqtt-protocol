@@ -1,0 +1,56 @@
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.4.15"
+    }
+}
+
+apply plugin: 'scala'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+
+    // Simulate provided dependencies
+    configurations{
+        provided
+    }
+
+    //Include provided for compilation
+    sourceSets.main.compileClasspath += configurations.provided
+    sourceSets.test.compileClasspath += configurations.provided
+    sourceSets.test.runtimeClasspath += configurations.provided
+
+    idea {
+        module{
+            scopes.PROVIDED.plus += [configurations.provided]
+        }
+    }
+
+    eclipse {
+        classpath {
+            plusConfigurations += [configurations.provided]
+        }
+    }
+
+
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+group 'com.github.jeanadrien'
+version '1.1-SNAPSHOT'
+
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.8'
+    provided 'io.gatling:gatling-core:2.2.3'
+    compile 'org.fusesource.mqtt-client:mqtt-client:1.14'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.5'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+apply from: project(':').file('publish.gradle')

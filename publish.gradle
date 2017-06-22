@@ -1,0 +1,52 @@
+apply plugin: "com.jfrog.artifactory"
+apply plugin: 'maven-publish'
+apply plugin: "ivy-publish"
+
+ext {
+    publishRepo = version.endsWith('SNAPSHOT') ? 'libs-snapshot-local' : 'libs-release-local'
+    resolveRepo = version.endsWith('SNAPSHOT') ? 'libs-snapshot' : 'libs-release'
+}
+
+artifactory {
+    contextUrl = artifactory_contextUrl
+    publish {
+        repository {
+            repoKey = publishRepo
+            username = artifactory_user
+            password = artifactory_password
+            maven = true
+
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'libs-release'
+            username = artifactory_user
+            password = artifactory_password
+            maven = true
+        }
+        repository {
+            repoKey = 'libs-snapshot'
+            username = artifactory_user
+            password = artifactory_password
+            maven = true
+        }
+    }
+}
+//artifactoryPublish.skip = true
+
+task publishLocal {
+    dependsOn 'publishToMavenLocal'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+artifactoryPublish {
+    publications('mavenJava')
+}

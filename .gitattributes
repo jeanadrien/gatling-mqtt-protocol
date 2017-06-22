@@ -1,0 +1,41 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Unix shell files use Unix line endings
+*.sh text eol=lf
+*.init text eol=lf
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+
+# Ensure that these binarys are, well, binary
+*.bmp     binary
+*.bz2     binary
+*.gif     binary
+*.jar     binary
+*.jpeg    binary
+*.jpg     binary
+*.png     binary
+*.tar.gz  binary
+*.zip     binary
+*.sqlite  binary
+
+# Custom for Visual Studio
+*.cs     diff=csharp
+*.sln    merge=union
+*.csproj merge=union
+*.vbproj merge=union
+*.fsproj merge=union
+*.dbproj merge=union
+
+# Standard to msysgit
+*.doc    diff=astextplain
+*.DOC    diff=astextplain
+*.docx diff=astextplain
+*.DOCX diff=astextplain
+*.dot  diff=astextplain
+*.DOT  diff=astextplain
+*.pdf  diff=astextplain
+*.PDF    diff=astextplain
+*.rtf    diff=astextplain
+*.RTF    diff=astextplain
+~                                   

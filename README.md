@@ -6,7 +6,7 @@ _Gatling-MQTT-Protocol_ is an unofficial plugin for the [Gatling](http://gatling
 The plugin provides gatling actions corresponding to the high level commands of the MQTT protocol.
  This allows better measurement of the MQTT server performance, and customizable scenario. 
  
-The client run by the plugin is _Fusesource_ MQTT Java [client](https://github.com/fusesource/mqtt-client)
+The client run by the plugin is [_Fusesource_ MQTT](https://github.com/fusesource/mqtt-client) Java client
 
 ## Installation
 

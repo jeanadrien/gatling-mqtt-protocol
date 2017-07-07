@@ -20,12 +20,12 @@ class MqttRoundtripMeasurementExample extends Simulation {
     val scn = scenario("MQTT Random byte array test")
         .exec(connect)
         .exec(subscribe("myTopic"))
-        .during(5 minutes) {
+        .during(30 seconds) {
             pace(1 second).exec(publishAndMeasure("myTopic", ByteArrayBody(_ => randomPayload)).timeout(60 seconds))
         }
-        .exec(waitForMessages().timeout(60 seconds))
+        .exec(waitForMessages().timeout(30 seconds))
 
     setUp(
-        scn.inject(rampUsers(50) over (2 minutes)))
+        scn.inject(rampUsers(10) over (10 seconds)))
         .protocols(mqttConf)
 }

@@ -1,6 +1,7 @@
 package com.github.jeanadrien.gatling.mqtt.protocol
 
 import akka.actor.ActorSystem
+import com.github.jeanadrien.gatling.mqtt.client.MqttClientConfiguration
 import com.typesafe.scalalogging.StrictLogging
 import io.gatling.commons.validation.{Success, Validation}
 import io.gatling.core.CoreComponents
@@ -8,6 +9,8 @@ import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.protocol.{Protocol, ProtocolKey}
 import io.gatling.core.session._
 import org.fusesource.mqtt.client.MQTT
+import com.github.jeanadrien.gatling.mqtt.client.ConfigurationUtils._
+
 
 /**
   *
@@ -82,73 +85,86 @@ case class MqttProtocol(
     throttlingPart           : MqttProtocolThrottlingPart
 ) extends Protocol {
 
-    private[protocol] def configureMqtt(session: Session)(mqttInstance: MQTT): Validation[MQTT] = {
-        Success(mqttInstance).flatMap { mqtt =>
+    private[protocol] def configureMqtt(session: Session): Validation[MqttClientConfiguration] = {
+        Success(
+            MqttClientConfiguration(
+                reconnectConfig = reconnectPart,
+                socketConfig = socketPart,
+                throttlingConfig = throttlingPart
+            )
+        ).flatMap { config : MqttClientConfiguration =>
             host.map {
-                _ (session).map { dh => mqtt.setHost(dh); mqtt }
-            } getOrElse (Success(mqtt))
+                _ (session).map { dh => config.copy(host = dh) }
+            } getOrElse (Success(config))
         }.
             flatMap(defaultConnectionSettings.configureMqtt(session)).
-            flatMap(optionPart.configureMqtt(session)).
-            flatMap(reconnectPart.configureMqtt(session)).
-            flatMap(socketPart.configureMqtt(session)).
-            flatMap(throttlingPart.configureMqtt(session))
+            flatMap(optionPart.configureMqtt(session))
     }
 }
 
 // Mqtt protocol parts
 
 case class MqttProtocolOptionPart(
-    keepAlive: Option[Short], // default is 30 (seconds)
+    keepAlive: Option[Int], // default is 30 (seconds)
     version  : Option[Expression[String]]
 ) {
-    private[protocol] def configureMqtt(session: Session)(mqtt: MQTT): Validation[MQTT] = {
-        keepAlive.foreach(mqtt.setKeepAlive)
-        version.map { vv =>
-            vv(session).map { v =>
-                mqtt.setVersion(v)
-                mqtt
-            }
-        } getOrElse (Success(mqtt))
+
+    def assign[T, V](maybeValue : Option[T])(fn : (V, T) => V) : V => Validation[V] = { current =>
+        Success(maybeValue.map(value => fn(current, value)).getOrElse(current))
+    }
+
+    private[protocol] def configureMqtt(session: Session)(mqtt: MqttClientConfiguration): Validation[MqttClientConfiguration] = {
+        assign[Int, MqttClientConfiguration](keepAlive){ (config, value) =>
+            config.copy(keepAlive = value)
+        }(mqtt) flatMap { mqtt =>
+            realize[String, MqttClientConfiguration](version){(config, value) => config.copy(version = value)}(mqtt, session)
+        }
+//        keepAlive.foreach(mqtt.setKeepAlive)
+//        version.map { vv =>
+//            vv(session).map { v =>
+//                mqtt.setVersion(v)
+//                mqtt
+//            }
+//        } getOrElse (Success(mqtt))
     }
 }
 
 case class MqttProtocolReconnectPart(
-    connectAttemptsMax        : Option[Long],
-    reconnectAttemptsMax      : Option[Long],
-    reconnectDelay            : Option[Long],
-    reconnectDelayMax         : Option[Long],
-    reconnectBackOffMultiplier: Option[Double]
+    connectAttemptsMax        : Option[Long] = None,
+    reconnectAttemptsMax      : Option[Long] = None,
+    reconnectDelay            : Option[Long] = None,
+    reconnectDelayMax         : Option[Long] = None,
+    reconnectBackOffMultiplier: Option[Double]  = None
 ) {
-    private[protocol] def configureMqtt(session: Session)(mqtt: MQTT): Validation[MQTT] = {
-        connectAttemptsMax.foreach(mqtt.setConnectAttemptsMax)
-        reconnectAttemptsMax.foreach(mqtt.setReconnectAttemptsMax)
-        reconnectDelay.foreach(mqtt.setReconnectDelay)
-        reconnectDelayMax.foreach(mqtt.setReconnectDelayMax)
-        reconnectBackOffMultiplier.foreach(mqtt.setReconnectBackOffMultiplier)
-        Success(mqtt)
-    }
+//    private[protocol] def configureMqtt(session: Session)(config: MqttClientConfiguration): Validation[MqttClientConfiguration] = {
+//        connectAttemptsMax.foreach(mqtt.setConnectAttemptsMax)
+//        reconnectAttemptsMax.foreach(mqtt.setReconnectAttemptsMax)
+//        reconnectDelay.foreach(mqtt.setReconnectDelay)
+//        reconnectDelayMax.foreach(mqtt.setReconnectDelayMax)
+//        reconnectBackOffMultiplier.foreach(mqtt.setReconnectBackOffMultiplier)
+//        Success(mqtt)
+//    }
 }
 
 case class MqttProtocolSocketPart(
-    receiveBufferSize: Option[Int],
-    sendBufferSize   : Option[Int],
-    trafficClass     : Option[Int]
+    receiveBufferSize: Option[Int] = None,
+    sendBufferSize   : Option[Int] = None,
+    trafficClass     : Option[Int] = None
 ) {
-    private[protocol] def configureMqtt(session: Session)(mqtt: MQTT): Validation[MQTT] = {
-        receiveBufferSize.foreach(mqtt.setReceiveBufferSize)
-        sendBufferSize.foreach(mqtt.setSendBufferSize)
-        Success(mqtt)
-    }
+//    private[protocol] def configureMqtt(session: Session)(mqtt: MQTT): Validation[MQTT] = {
+//        receiveBufferSize.foreach(mqtt.setReceiveBufferSize)
+//        sendBufferSize.foreach(mqtt.setSendBufferSize)
+//        Success(mqtt)
+//    }
 }
 
 case class MqttProtocolThrottlingPart(
-    maxReadRate : Option[Int],
-    maxWriteRate: Option[Int]
+    maxReadRate : Option[Int] = None,
+    maxWriteRate: Option[Int] = None
 ) {
-    private[protocol] def configureMqtt(session: Session)(mqtt: MQTT): Validation[MQTT] = {
-        maxReadRate.foreach(mqtt.setMaxReadRate)
-        maxWriteRate.foreach(mqtt.setMaxWriteRate)
-        Success(mqtt)
-    }
+//    private[protocol] def configureMqtt(session: Session)(mqtt: MQTT): Validation[MQTT] = {
+//        maxReadRate.foreach(mqtt.setMaxReadRate)
+//        maxWriteRate.foreach(mqtt.setMaxWriteRate)
+//        Success(mqtt)
+//    }
 }

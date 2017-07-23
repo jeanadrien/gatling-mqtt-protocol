@@ -1,11 +1,12 @@
 package com.github.jeanadrien.gatling.mqtt.protocol
 
 import akka.actor.{ActorRef, ActorSystem}
+import com.github.jeanadrien.gatling.mqtt.client.{FuseSourceMqttClient, MqttClient}
 import com.typesafe.scalalogging.StrictLogging
-import io.gatling.commons.validation.{Success, Validation}
+import io.gatling.commons.validation.Validation
 import io.gatling.core.protocol.ProtocolComponents
 import io.gatling.core.session._
-import org.fusesource.mqtt.client.{CallbackConnection, MQTT}
+import org.fusesource.mqtt.client.CallbackConnection
 
 /**
   *
@@ -14,10 +15,12 @@ case class MqttComponents(
     mqttProtocol : MqttProtocol, system : ActorSystem
 ) extends ProtocolComponents with StrictLogging {
 
-    def mqttEngine(session : Session, connectionSettings : ConnectionSettings) : Validation[MQTT] = {
-        logger.debug("MqttComponents: new mqttEngine");
-        Success(new MQTT()).flatMap(mqttProtocol.configureMqtt(session))
-            .flatMap(connectionSettings.configureMqtt(session))
+    def mqttEngine(session : Session, connectionSettings : ConnectionSettings) : Validation[MqttClient] = {
+        logger.debug("MqttComponents: new mqttEngine")
+        mqttProtocol.configureMqtt(session).map { config =>
+            // TODO inject the selected engine
+            new FuseSourceMqttClient(config)
+        }
     }
 
     override def onStart : Option[(Session) => Session] = Some(s => {

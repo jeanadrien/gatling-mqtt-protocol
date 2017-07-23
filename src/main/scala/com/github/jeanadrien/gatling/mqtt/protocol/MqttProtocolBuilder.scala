@@ -1,9 +1,9 @@
 package com.github.jeanadrien.gatling.mqtt.protocol
 
+import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 import com.softwaremill.quicklens._
 import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.session._
-import org.fusesource.mqtt.client.QoS
 
 /**
   *
@@ -32,7 +32,7 @@ case class MqttProtocolBuilder(mqttProtocol: MqttProtocol) {
     def willMessage(willMessage: Expression[String]) = this.modify(_.mqttProtocol.defaultConnectionSettings.willMessage)
         .setTo(Some(willMessage))
 
-    def willQos(willQos: QoS) = this.modify(_.mqttProtocol.defaultConnectionSettings.willQos).setTo(Some(willQos))
+    def willQos(willQos: MqttQoS) = this.modify(_.mqttProtocol.defaultConnectionSettings.willQos).setTo(Some(willQos))
 
     def willRetain(willRetain: Boolean) = this.modify(_.mqttProtocol.defaultConnectionSettings.willRetain)
         .setTo(Some(willRetain))

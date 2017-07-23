@@ -1,5 +1,6 @@
 package com.github.jeanadrien.gatling.mqtt.actions
 
+import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 import com.github.jeanadrien.gatling.mqtt.protocol.ConnectionSettings
 import com.softwaremill.quicklens._
 import io.gatling.core.action.Action
@@ -36,7 +37,7 @@ case class ConnectActionBuilder(
     def willMessage(willMessage: Expression[String]) = this.modify(_.connectionSettings.willMessage)
         .setTo(Some(willMessage))
 
-    def willQos(willQos: QoS) = this.modify(_.connectionSettings.willQos).setTo(Some(willQos))
+    def willQos(willQos: MqttQoS) = this.modify(_.connectionSettings.willQos).setTo(Some(willQos))
 
     def willRetain(willRetain: Boolean) = this.modify(_.connectionSettings.willRetain).setTo(Some(willRetain))
 

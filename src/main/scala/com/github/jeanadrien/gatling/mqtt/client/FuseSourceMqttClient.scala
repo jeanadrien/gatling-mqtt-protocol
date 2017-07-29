@@ -1,14 +1,18 @@
 package com.github.jeanadrien.gatling.mqtt.client
+import akka.actor.Actor.Receive
+import akka.actor.ActorRef
+import akka.actor.Status.Failure
+import com.github.jeanadrien.gatling.mqtt.client.MqttCommands._
 import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 import com.github.jeanadrien.gatling.mqtt.protocol.MqttProtocol
-import org.fusesource.mqtt.client.{MQTT, QoS}
+import org.fusesource.mqtt.client.{CallbackConnection, MQTT, QoS, Topic}
 
 /**
   *
   */
 class FuseSourceMqttClient(config : MqttClientConfiguration) extends MqttClient {
 
-    def qosToQos(mqttQoS : MqttQoS) : QoS = mqttQoS match {
+    implicit def qosToQos(mqttQoS : MqttQoS) : QoS = mqttQoS match {
         case MqttQoS.AtLeastOnce => QoS.AT_LEAST_ONCE
         case MqttQoS.AtMostOnce => QoS.AT_MOST_ONCE
         case MqttQoS.ExactlyOnce => QoS.EXACTLY_ONCE
@@ -44,5 +48,46 @@ class FuseSourceMqttClient(config : MqttClientConfiguration) extends MqttClient 
     // configure throttling part
     config.throttlingConfig.maxReadRate.foreach(engine.setMaxReadRate)
     config.throttlingConfig.maxWriteRate.foreach(engine.setMaxWriteRate)
+
+    // === mqtt commands =================================================== //
+
+    private var openConnection : Option[CallbackConnection] = None
+
+    override protected def connect(replyTo : ActorRef) : Unit = {
+        val connection = engine.callbackConnection()
+        val listener = new FuseSourceConnectionListener(self)
+        connection.listener(listener)
+
+        connection.connect(Callback.onSuccess[Void] { _ =>
+            openConnection = Some(connection)
+            replyTo ! ConnectAck
+        } onFailure { th =>
+            replyTo ! Failure(th) // FIXME : Or throw th ?
+        })
+    }
+
+    override protected def subscribe(topics : List[(String, MqttQoS)], replyTo : ActorRef) : Unit = openConnection match {
+        case Some(connection) =>
+            val topicsList : List[Topic] = topics.map { case (t, mqttQoS) => new Topic(t, mqttQoS) }
+            connection.subscribe(topicsList.toArray, Callback.onSuccess { value : Array[Byte] =>
+                // FIXME : What to do with this 'value' ?
+                replyTo ! SubscribeAck
+            } onFailure { th =>
+                replyTo ! Failure(th)
+            })
+        case None =>
+            replyTo ! Failure(new IllegalStateException("Cannot subscribe: mqtt connection is not open"))
+    }
+
+    override protected def publish(topic : String, payload : Array[Byte], mqttQoS : MqttQoS, retain : Boolean, replyTo : ActorRef) : Unit = openConnection match {
+        case Some(connection) =>
+            connection.publish(topic, payload, mqttQoS, retain, Callback.onSuccess[Void] { _ =>
+                replyTo ! PublishAck
+            } onFailure { th =>
+                replyTo ! Failure(th)
+            })
+        case None =>
+            replyTo ! Failure(new IllegalStateException("Cannot publish: mqtt connection is not open"))
+    }
 
 }

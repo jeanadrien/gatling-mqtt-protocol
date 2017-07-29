@@ -21,7 +21,7 @@ class MqttRoundtripMeasurementExample extends Simulation {
         .exec(connect)
         .exec(subscribe("myTopic"))
         .during(30 seconds) {
-            pace(1 second).exec(publishAndMeasure("myTopic", ByteArrayBody(_ => randomPayload)).timeout(60 seconds))
+            pace(1 second).exec(publishAndWait("myTopic", ByteArrayBody(_ => randomPayload)).timeout(60 seconds))
         }
         .exec(waitForMessages().timeout(30 seconds))
 

@@ -1,4 +1,4 @@
-package com.github.jeanadrien.gatling.mqtt.actions
+package com.github.jeanadrien.gatling.mqtt.client
 
 import akka.actor.ActorRef
 import com.typesafe.scalalogging.StrictLogging
@@ -8,9 +8,7 @@ import org.fusesource.mqtt.client.Listener
 /**
   *
   */
-class ConnectionListener(val connectionId : String, actor : ActorRef) extends Listener with StrictLogging {
-
-    import MessageListenerActor._
+class FuseSourceConnectionListener(actor : ActorRef) extends Listener with StrictLogging {
 
     override def onPublish(
         topic : UTF8Buffer, body : Buffer,
@@ -19,23 +17,21 @@ class ConnectionListener(val connectionId : String, actor : ActorRef) extends Li
         val topicStr = topic.toString()
         val bodyStr = body.toByteArray()
 
-        logger.trace(s"Listener ${actor} receives: topic=${topicStr}, body=${bodyStr}")
+        logger.trace(s"Listener receives: topic=${topicStr}, body=${bodyStr}")
 
-        actor ! MqttReceive(topicStr, bodyStr)
+        actor ! MqttCommands.OnPublish(topicStr, bodyStr)
         ack.run()
     }
 
     override def onConnected() : Unit = {
-        logger.debug(s"${connectionId}: client is now connected.")
+        logger.debug(s"Client is now connected.")
     }
 
     override def onFailure(value : Throwable) : Unit = {
-        logger.error(s"${connectionId}: Listener: onFailure: ${value.getMessage}")
+        logger.error(s"Listener: onFailure: ${value.getMessage}")
     }
 
     override def onDisconnected() : Unit = {
-        logger.debug(s"${connectionId}: has been disconnected.")
+        logger.debug(s"Client has been disconnected.")
     }
 }
-
-

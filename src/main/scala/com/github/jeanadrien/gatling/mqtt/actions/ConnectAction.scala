@@ -1,11 +1,16 @@
 package com.github.jeanadrien.gatling.mqtt.actions
 
+import com.github.jeanadrien.gatling.mqtt.client.{FuseSourceConnectionListener, MqttCommands}
 import com.github.jeanadrien.gatling.mqtt.protocol.{ConnectionSettings, MqttComponents}
 import io.gatling.commons.stats._
 import io.gatling.commons.util.ClockSingleton._
 import io.gatling.core.CoreComponents
 import io.gatling.core.Predef._
 import io.gatling.core.action.Action
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 /**
   *
@@ -17,6 +22,8 @@ class ConnectAction(
     val next : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
+    import mqttComponents.system.dispatcher
+
     override val name = genName("mqttConnect")
 
     override def execute(session : Session) : Unit = recover(session) {
@@ -26,45 +33,37 @@ class ConnectAction(
             val requestName = "connect"
             logger.debug(s"${connectionId}: Execute ${requestName}")
 
-            val messageListener = mqttComponents.system
-                .actorOf(MessageListenerActor.props(connectionId), "ml-" + connectionId)
-
             // connect
+            implicit val timeout = Timeout(1 minute) // TODO check how to configure this
             val requestStartDate = nowMillis
-            val connection = mqtt.callbackConnection()
+            (mqtt ? MqttCommands.Connect).mapTo[MqttCommands].onComplete {
+                case Success(MqttCommands.ConnectAck) =>
+                    val connectTiming = timings(requestStartDate)
 
-            val listener = new ConnectionListener(connectionId, messageListener)
-            connection.listener(listener)
+                    statsEngine.logResponse(
+                        session,
+                        requestName,
+                        connectTiming,
+                        OK,
+                        None,
+                        None
+                    )
 
-            connection.connect(Callback.onSuccess[Void] { _ =>
-                val connectTiming = timings(requestStartDate)
-
-                statsEngine.logResponse(
-                    session,
-                    requestName,
-                    connectTiming,
-                    OK,
-                    None,
-                    None
-                )
-
-                next ! session.
-                    set("connection", connection).
-                    set("connectionId", connectionId).
-                    set("listener", messageListener)
-            } onFailure { th =>
-
-                val connectTiming = timings(requestStartDate)
-                logger.warn(s"${connectionId}: Failed to connect to MQTT: ${th}")
-                statsEngine.logResponse(
-                    session,
-                    requestName,
-                    connectTiming,
-                    KO,
-                    None,
-                    Some(th.getMessage)
-                )
-            })
+                    next ! session.
+                        set("engine", mqtt).
+                        set("connectionId", connectionId)
+                case Failure(th) =>
+                    val connectTiming = timings(requestStartDate)
+                    logger.warn(s"${connectionId}: Failed to connect to MQTT: ${th}")
+                    statsEngine.logResponse(
+                        session,
+                        requestName,
+                        connectTiming,
+                        KO,
+                        None,
+                        Some(th.getMessage)
+                    )
+            }
         }
     }
 

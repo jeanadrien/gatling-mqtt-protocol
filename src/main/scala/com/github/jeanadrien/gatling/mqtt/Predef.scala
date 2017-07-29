@@ -24,10 +24,6 @@ object Predef {
         topic : Expression[String], payload : Expression[T]
     ) = PublishAndWaitActionBuilder(topic, payload.map(_.toByteArray))
 
-    def publishAndMeasure[T <% MqttPayload](
-        topic : Expression[String], payload : Expression[T]
-    ) = PublishAndMeasureActionBuilder(topic, payload.map(_.toByteArray))
-
     def waitForMessages = WaitForMessagesActionBuilder
 
     def payload(in : Expression[String]) : Expression[Array[Byte]] =

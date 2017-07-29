@@ -1,10 +1,11 @@
 package com.github.jeanadrien.gatling.mqtt.actions
 
+import com.github.jeanadrien.gatling.mqtt.client.MqttQoS
+import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 import com.softwaremill.quicklens._
 import io.gatling.core.action.Action
 import io.gatling.core.session._
 import io.gatling.core.structure.ScenarioContext
-import org.fusesource.mqtt.client.QoS
 
 /**
   *
@@ -12,17 +13,17 @@ import org.fusesource.mqtt.client.QoS
 case class PublishActionBuilder(
     topic : Expression[String],
     payload : Expression[Array[Byte]],
-    qos : QoS = QoS.AT_MOST_ONCE,
+    qos : MqttQoS = MqttQoS.AtMostOnce,
     retain : Boolean = false
 ) extends MqttActionBuilder {
 
-    def qos(newQos : QoS) : PublishActionBuilder = this.modify(_.qos).setTo(newQos)
+    def qos(newQos : MqttQoS) : PublishActionBuilder = this.modify(_.qos).setTo(newQos)
 
-    def qosAtMostOnce = qos(QoS.AT_MOST_ONCE)
+    def qosAtMostOnce = qos(MqttQoS.AtMostOnce)
 
-    def qosAtLeastOnce = qos(QoS.AT_LEAST_ONCE)
+    def qosAtLeastOnce = qos(MqttQoS.AtLeastOnce)
 
-    def qosExactlyOnce = qos(QoS.EXACTLY_ONCE)
+    def qosExactlyOnce = qos(MqttQoS.ExactlyOnce)
 
     def retain(newRetain : Boolean) : PublishActionBuilder = this.modify(_.retain).setTo(newRetain)
 

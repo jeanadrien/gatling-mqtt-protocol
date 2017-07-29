@@ -15,11 +15,11 @@ case class MqttComponents(
     mqttProtocol : MqttProtocol, system : ActorSystem
 ) extends ProtocolComponents with StrictLogging {
 
-    def mqttEngine(session : Session, connectionSettings : ConnectionSettings) : Validation[MqttClient] = {
+    def mqttEngine(session : Session, connectionSettings : ConnectionSettings) : Validation[ActorRef] = {
         logger.debug("MqttComponents: new mqttEngine")
         mqttProtocol.configureMqtt(session).map { config =>
             // TODO inject the selected engine
-            new FuseSourceMqttClient(config)
+            system.actorOf(MqttClient.fuseClient(config))
         }
     }
 
@@ -32,5 +32,6 @@ case class MqttComponents(
         logger.debug("MqttComponents: onExit");
         s("connection").asOption[CallbackConnection].foreach(_.disconnect(null))
         s("listener").asOption[ActorRef].foreach(system stop _)
+        // TODO step the engine actor
     })
 }

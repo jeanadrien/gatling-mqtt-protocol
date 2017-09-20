@@ -19,7 +19,8 @@ case class MqttComponents(
         logger.debug("MqttComponents: new mqttEngine")
         mqttProtocol.configureMqtt(session).map { config =>
             // TODO inject the selected engine
-            system.actorOf(MqttClient.fuseClient(config))
+            system.actorOf(MqttClient.pahoClient(config))
+//            system.actorOf(MqttClient.fuseClient(config))
         }
     }
 

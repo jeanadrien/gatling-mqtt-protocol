@@ -111,4 +111,5 @@ object MqttClient {
     type FeedbackFunction = Array[Byte] => Boolean
 
     def fuseClient(configuration: MqttClientConfiguration) = Props(new FuseSourceMqttClient(configuration))
+    def pahoClient(configuration: MqttClientConfiguration) = Props(new PahoMqttClient(configuration))
 }

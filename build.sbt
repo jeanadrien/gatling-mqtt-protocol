@@ -27,6 +27,7 @@ developers := List(
 
 libraryDependencies += "io.gatling" % "gatling-core" % "2.2.5" % "provided"
 libraryDependencies += "org.fusesource.mqtt-client" % "mqtt-client" % "1.14"
+libraryDependencies += "org.eclipse.paho" % "org.eclipse.paho.client.mqttv3" % "1.0.2"
 
 libraryDependencies += "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.5" % "test"
 libraryDependencies += "io.gatling"            % "gatling-test-framework"    % "2.2.5" % "test"

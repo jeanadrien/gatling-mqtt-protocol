@@ -62,7 +62,7 @@ class FuseSourceMqttClient(config : MqttClientConfiguration) extends MqttClient 
             openConnection = Some(connection)
             replyTo ! ConnectAck
         } onFailure { th =>
-            replyTo ! Failure(th) // FIXME : Or throw th ?
+            replyTo ! Failure(th)
         })
     }
 
@@ -90,4 +90,14 @@ class FuseSourceMqttClient(config : MqttClientConfiguration) extends MqttClient 
             replyTo ! Failure(new IllegalStateException("Cannot publish: mqtt connection is not open"))
     }
 
+    override protected def close() = openConnection match {
+        case Some(connection) =>
+            connection.disconnect(Callback.onSuccess[Void] { _ =>
+                logger.debug("MQTT client disconnected.")
+            } onFailure { th =>
+                logger.warn("Failed to close MQTT connection.")
+            })
+        case None =>
+            // nop
+    }
 }

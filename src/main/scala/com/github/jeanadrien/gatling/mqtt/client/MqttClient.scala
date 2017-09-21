@@ -1,6 +1,7 @@
 package com.github.jeanadrien.gatling.mqtt.client
 
 import akka.actor.{Actor, ActorRef, Props}
+import com.github.jeanadrien.gatling.mqtt.Settings
 import com.github.jeanadrien.gatling.mqtt.client.MqttClient.FeedbackFunction
 import com.github.jeanadrien.gatling.mqtt.client.MqttCommands._
 import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
@@ -21,6 +22,8 @@ abstract class MqttClient extends Actor with LazyLogging {
     protected def subscribe(topics : List[(String, MqttQoS)], replyTo : ActorRef) : Unit
 
     protected def publish(topic : String, payload : Array[Byte], mqttQoS : MqttQoS, retain : Boolean, replyTo : ActorRef) : Unit
+
+    protected def close() : Unit
 
     private def addFeedbackListener(topic : String, listener : (FeedbackFunction, ActorRef)): Unit = {
         feedbackListener = feedbackListener.get(topic) match {
@@ -84,6 +87,10 @@ abstract class MqttClient extends Actor with LazyLogging {
         waitForMessagesReceivedListeners = Nil
     }
 
+    override def postStop() = {
+        super.postStop()
+        close()
+    }
 
     override def receive : Receive = {
         case Connect =>
@@ -106,10 +113,14 @@ abstract class MqttClient extends Actor with LazyLogging {
     }
 }
 
-object MqttClient {
+object MqttClient extends Settings with LazyLogging {
 
     type FeedbackFunction = Array[Byte] => Boolean
 
-    def fuseClient(configuration: MqttClientConfiguration) = Props(new FuseSourceMqttClient(configuration))
-    def pahoClient(configuration: MqttClientConfiguration) = Props(new PahoMqttClient(configuration))
+    
+    var clientInjection : (MqttClientConfiguration) => Props = { configuration =>
+        val clientClass = settings.mqtt.client
+        logger.info(s"Use MqttClient '$clientClass'")
+        Props(Class.forName(clientClass), configuration)
+    }
 }

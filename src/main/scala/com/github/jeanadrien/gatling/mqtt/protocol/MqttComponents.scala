@@ -18,9 +18,9 @@ case class MqttComponents(
     def mqttEngine(session : Session, connectionSettings : ConnectionSettings) : Validation[ActorRef] = {
         logger.debug("MqttComponents: new mqttEngine")
         mqttProtocol.configureMqtt(session).map { config =>
-            // TODO inject the selected engine
-            system.actorOf(MqttClient.pahoClient(config))
-//            system.actorOf(MqttClient.fuseClient(config))
+            // inject the selected engine
+            val mqttClient = system.actorOf(MqttClient.clientInjection(config))
+            mqttClient
         }
     }
 
@@ -31,8 +31,8 @@ case class MqttComponents(
 
     override def onExit : Option[(Session) => Unit] = Some(s => {
         logger.debug("MqttComponents: onExit");
-        s("connection").asOption[CallbackConnection].foreach(_.disconnect(null))
-        s("listener").asOption[ActorRef].foreach(system stop _)
-        // TODO step the engine actor
+        s("engine").asOption[ActorRef].foreach { mqtt =>
+            system.stop(mqtt)
+        }
     })
 }

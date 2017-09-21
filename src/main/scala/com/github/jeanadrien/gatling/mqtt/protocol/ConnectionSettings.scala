@@ -4,7 +4,6 @@ import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 import com.github.jeanadrien.gatling.mqtt.client.{MqttClientConfiguration, Will}
 import io.gatling.commons.validation.{Failure, Success, Validation}
 import io.gatling.core.session.{Session, _}
-import org.fusesource.mqtt.client.{MQTT, QoS}
 import com.github.jeanadrien.gatling.mqtt.client.ConfigurationUtils._
 
 /**
@@ -54,28 +53,6 @@ case class ConnectionSettings(
         } flatMap {
             configureWill(session)
         }
-
-//        Success(mqtt).flatMap { mqtt =>
-//            clientId.map {
-//                _ (session).map { cid => mqtt.copy(clientId = cid) }
-//            } getOrElse (Success(mqtt))
-//        } flatMap { mqtt =>
-//            userName.map {
-//                _ (session).map { un => mqtt.setUserName(un); mqtt }
-//            } getOrElse (Success(mqtt))
-//        } flatMap { mqtt =>
-//            password.map {
-//                _ (session).map { pswd => mqtt.setPassword(pswd); mqtt }
-//            } getOrElse (Success(mqtt))
-//        } flatMap { mqtt =>
-//            willTopic.map {
-//                _ (session).map { wto => mqtt.setWillTopic(wto); mqtt }
-//            } getOrElse (Success(mqtt))
-//        } flatMap { mqtt =>
-//            willMessage.map {
-//                _ (session).map { wme => mqtt.setWillMessage(wme); mqtt }
-//            } getOrElse (Success(mqtt))
-//        }
     }
 
 }

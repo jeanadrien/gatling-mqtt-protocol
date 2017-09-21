@@ -54,16 +54,7 @@ class PahoMqttClient(config : MqttClientConfiguration) extends MqttClient {
 
     // FIXME: Support close
 
-    //
-//    System.out.println("Connected");
-//    System.out.println("Publishing message: "+content);
-//    MqttMessage message = new MqttMessage(content.getBytes());
-//    message.setQos(qos);
-//    sampleClient.publish(topic, message);
-//    System.out.println("Message published");
-//    sampleClient.disconnect();
-//    System.out.println("Disconnected");
-//    System.exit(0);
+
     override protected def connect(replyTo: ActorRef): Unit = {
         pahoClient.connect(connOpts);
         replyTo ! ConnectAck
@@ -84,5 +75,10 @@ class PahoMqttClient(config : MqttClientConfiguration) extends MqttClient {
         message.setRetained(retain)
         pahoClient.publish(topic, message)
         replyTo ! PublishAck
+    }
+
+    override protected def close() = {
+        pahoClient.disconnect()
+        pahoClient.close()
     }
 }

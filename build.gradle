@@ -43,8 +43,8 @@ version '1.1-SNAPSHOT'
 
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.8'
-    provided 'io.gatling:gatling-core:2.2.3'
+    compile 'org.scala-lang:scala-library:2.12.3'
+    provided 'io.gatling:gatling-core:2.3.0'
     compile 'org.fusesource.mqtt-client:mqtt-client:1.14'
 }
 

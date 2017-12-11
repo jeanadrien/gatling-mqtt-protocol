@@ -10,7 +10,7 @@ import com.typesafe.scalalogging.LazyLogging
 /**
   *
   */
-abstract class MqttClient extends Actor with LazyLogging {
+abstract class MqttClient(gatlingMqttId : String) extends Actor with LazyLogging {
 
     // FIXME: Timeout and feebackListener polution
     private var feedbackListener : Map[String, List[(FeedbackFunction, ActorRef)]] = Map()
@@ -35,7 +35,7 @@ abstract class MqttClient extends Actor with LazyLogging {
     }
 
     protected def onPublish(topic : String, payload : Array[Byte]): Unit = {
-        logger.debug(s"Client (TODO) received (topic: $topic, payload size: ${payload.size}")
+        logger.debug(s"Client ${gatlingMqttId} received (topic: $topic, payload size: ${payload.size}")
         feedbackListener = feedbackListener.get(topic) match {
             case Some(listeners) =>
                 val (matching, nonMatching) = listeners.partition { case(fn, _) =>
@@ -118,9 +118,9 @@ object MqttClient extends Settings with LazyLogging {
     type FeedbackFunction = Array[Byte] => Boolean
 
     
-    var clientInjection : (MqttClientConfiguration) => Props = { configuration =>
+    var clientInjection : (MqttClientConfiguration, String) => Props = { (configuration, gatlingClientId) =>
         val clientClass = settings.mqtt.client
         logger.info(s"Use MqttClient '$clientClass'")
-        Props(Class.forName(clientClass), configuration)
+        Props(Class.forName(clientClass), configuration, gatlingClientId)
     }
 }

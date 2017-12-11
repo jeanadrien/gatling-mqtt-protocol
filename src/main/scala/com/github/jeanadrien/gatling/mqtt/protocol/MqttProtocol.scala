@@ -29,9 +29,9 @@ object MqttProtocol extends StrictLogging {
 
         def newComponents(system: ActorSystem, coreComponents: CoreComponents): MqttProtocol => MqttComponents = {
 
-            mqttProdocol => {
+            mqttProtocol => {
                 val mqttComponents = MqttComponents(
-                    mqttProdocol,
+                    mqttProtocol,
                     system
                 )
 

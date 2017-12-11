@@ -27,8 +27,8 @@ class ConnectAction(
     override val name = genName("mqttConnect")
 
     override def execute(session : Session) : Unit = recover(session) {
-        mqttComponents.mqttEngine(session, connectionSettings).flatMap { mqtt =>
-            val connectionId = genName("mqttConnection")
+        val connectionId = genName("mqttClient")
+        mqttComponents.mqttEngine(session, connectionSettings, connectionId).flatMap { mqtt =>
 
             val requestName = "connect"
             logger.debug(s"${connectionId}: Execute ${requestName}")

@@ -10,7 +10,7 @@ import org.fusesource.mqtt.client.{CallbackConnection, MQTT, QoS, Topic}
 /**
   *
   */
-class FuseSourceMqttClient(config : MqttClientConfiguration) extends MqttClient {
+class FuseSourceMqttClient(config : MqttClientConfiguration, gatlingMqttId : String) extends MqttClient(gatlingMqttId) {
 
     implicit def qosToQos(mqttQoS : MqttQoS) : QoS = mqttQoS match {
         case MqttQoS.AtLeastOnce => QoS.AT_LEAST_ONCE

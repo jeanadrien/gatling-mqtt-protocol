@@ -8,7 +8,7 @@ import org.eclipse.paho.client.mqttv3.{MqttConnectOptions, MqttMessage, MqttClie
 /**
   *
   */
-class PahoMqttClient(config : MqttClientConfiguration) extends MqttClient {
+class PahoMqttClient(config : MqttClientConfiguration, gatlingMqttId : String) extends MqttClient(gatlingMqttId) {
 
     private val persistence = new MemoryPersistence();
 
@@ -51,9 +51,6 @@ class PahoMqttClient(config : MqttClientConfiguration) extends MqttClient {
     // FIXME: Throttling
     // FIXME: Reconnect Part
     // FIXME: Socketconfig
-
-    // FIXME: Support close
-
 
     override protected def connect(replyTo: ActorRef): Unit = {
         pahoClient.connect(connOpts);

@@ -1,4 +1,5 @@
 package com.github.jeanadrien.gatling.mqtt.client
+
 import akka.actor.ActorRef
 import com.github.jeanadrien.gatling.mqtt.client.MqttCommands.{ConnectAck, PublishAck, SubscribeAck}
 import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
@@ -12,7 +13,7 @@ class PahoMqttClient(config : MqttClientConfiguration, gatlingMqttId : String) e
 
     private val persistence = new MemoryPersistence();
 
-    private def qosIntValue(qos: MqttQoS) : Int = qos match {
+    private def qosIntValue(qos : MqttQoS) : Int = qos match {
         case MqttQoS.AtMostOnce => 0
         case MqttQoS.AtLeastOnce => 1
         case MqttQoS.ExactlyOnce => 2
@@ -52,18 +53,18 @@ class PahoMqttClient(config : MqttClientConfiguration, gatlingMqttId : String) e
     // FIXME: Reconnect Part
     // FIXME: Socketconfig
 
-    override protected def connect(replyTo: ActorRef): Unit = {
+    override protected def connect(replyTo : ActorRef) : Unit = {
         pahoClient.connect(connOpts);
         replyTo ! ConnectAck
     }
 
-    override protected def subscribe(topics: List[(String, MqttQoS)], replyTo: ActorRef): Unit = {
+    override protected def subscribe(topics : List[(String, MqttQoS)], replyTo : ActorRef) : Unit = {
         pahoClient.subscribe(topics.map(_._1).toArray, topics.map(_._2).map(qosIntValue).toArray)
         replyTo ! SubscribeAck
     }
 
     override protected def publish(
-        topic   : String, payload : Array[Byte],
+        topic : String, payload : Array[Byte],
         mqttQoS : MqttQoS, retain : Boolean,
         replyTo : ActorRef
     ) : Unit = {

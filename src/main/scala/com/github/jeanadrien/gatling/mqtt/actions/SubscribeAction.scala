@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
 class SubscribeAction(
     mqttComponents : MqttComponents,
     coreComponents : CoreComponents,
-    topic : Expression[String],
+    topic          : Expression[String],
     qos            : MqttQoS,
     val next       : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
@@ -41,7 +41,7 @@ class SubscribeAction(
         val requestName = "subscribe"
 
         logger.debug(s"${connectionId}: Execute ${requestName}:${resolvedTopic}")
-        (connection ? MqttCommands.Subscribe((resolvedTopic -> qos)::Nil)).mapTo[MqttCommands].onComplete {
+        (connection ? MqttCommands.Subscribe((resolvedTopic -> qos) :: Nil)).mapTo[MqttCommands].onComplete {
             case Success(MqttCommands.SubscribeAck) =>
                 val subscribeTimings = timings(requestStartDate)
 

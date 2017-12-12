@@ -1,10 +1,9 @@
 package com.github.jeanadrien.gatling.mqtt.client
-import akka.actor.Actor.Receive
+
 import akka.actor.ActorRef
 import akka.actor.Status.Failure
 import com.github.jeanadrien.gatling.mqtt.client.MqttCommands._
 import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
-import com.github.jeanadrien.gatling.mqtt.protocol.MqttProtocol
 import org.fusesource.mqtt.client.{CallbackConnection, MQTT, QoS, Topic}
 
 /**
@@ -66,7 +65,9 @@ class FuseSourceMqttClient(config : MqttClientConfiguration, gatlingMqttId : Str
         })
     }
 
-    override protected def subscribe(topics : List[(String, MqttQoS)], replyTo : ActorRef) : Unit = openConnection match {
+    override protected def subscribe(
+        topics : List[(String, MqttQoS)], replyTo : ActorRef
+    ) : Unit = openConnection match {
         case Some(connection) =>
             val topicsList : List[Topic] = topics.map { case (t, mqttQoS) => new Topic(t, mqttQoS) }
             connection.subscribe(topicsList.toArray, Callback.onSuccess { value : Array[Byte] =>
@@ -79,7 +80,9 @@ class FuseSourceMqttClient(config : MqttClientConfiguration, gatlingMqttId : Str
             replyTo ! Failure(new IllegalStateException("Cannot subscribe: mqtt connection is not open"))
     }
 
-    override protected def publish(topic : String, payload : Array[Byte], mqttQoS : MqttQoS, retain : Boolean, replyTo : ActorRef) : Unit = openConnection match {
+    override protected def publish(
+        topic : String, payload : Array[Byte], mqttQoS : MqttQoS, retain : Boolean, replyTo : ActorRef
+    ) : Unit = openConnection match {
         case Some(connection) =>
             connection.publish(topic, payload, mqttQoS, retain, Callback.onSuccess[Void] { _ =>
                 replyTo ! PublishAck
@@ -98,6 +101,6 @@ class FuseSourceMqttClient(config : MqttClientConfiguration, gatlingMqttId : Str
                 logger.warn("Failed to close MQTT connection.")
             })
         case None =>
-            // nop
+        // nop
     }
 }

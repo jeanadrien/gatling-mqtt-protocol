@@ -13,8 +13,8 @@ import io.gatling.core.structure.ScenarioContext
 case class PublishActionBuilder(
     topic : Expression[String],
     payload : Expression[Array[Byte]],
-    qos : MqttQoS = MqttQoS.AtMostOnce,
-    retain : Boolean = false
+    qos     : MqttQoS = MqttQoS.AtMostOnce,
+    retain  : Boolean = false
 ) extends MqttActionBuilder {
 
     def qos(newQos : MqttQoS) : PublishActionBuilder = this.modify(_.qos).setTo(newQos)

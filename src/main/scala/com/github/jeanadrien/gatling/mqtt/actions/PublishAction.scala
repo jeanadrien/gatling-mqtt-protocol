@@ -22,9 +22,9 @@ class PublishAction(
     mqttComponents : MqttComponents,
     coreComponents : CoreComponents,
     topic          : Expression[String],
-    payload : Expression[Array[Byte]],
+    payload        : Expression[Array[Byte]],
     qos            : MqttQoS,
-    retain : Boolean,
+    retain         : Boolean,
     val next       : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 

@@ -12,7 +12,7 @@ class FuseSourceConnectionListener(actor : ActorRef) extends Listener with Stric
 
     override def onPublish(
         topic : UTF8Buffer, body : Buffer,
-        ack : Runnable
+        ack   : Runnable
     ) : Unit = {
         val topicStr = topic.toString()
         val bodyStr = body.toByteArray()

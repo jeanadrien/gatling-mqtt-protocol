@@ -10,17 +10,18 @@ import com.github.jeanadrien.gatling.mqtt.client.ConfigurationUtils._
   *
   */
 case class ConnectionSettings(
-    clientId : Option[Expression[String]],
+    clientId     : Option[Expression[String]],
     cleanSession : Option[Boolean],
-    userName : Option[Expression[String]],
-    password : Option[Expression[String]],
-    willTopic : Option[Expression[String]],
-    willMessage : Option[Expression[String]],
-    willQos : Option[MqttQoS],
-    willRetain : Option[Boolean]
+    userName     : Option[Expression[String]],
+    password     : Option[Expression[String]],
+    willTopic    : Option[Expression[String]],
+    willMessage  : Option[Expression[String]],
+    willQos      : Option[MqttQoS],
+    willRetain   : Option[Boolean]
 ) {
 
-    private def configureWill(session : Session)(mqtt1 : MqttClientConfiguration) : Validation[MqttClientConfiguration] = (willTopic, willMessage) match {
+    private def configureWill(session : Session)
+        (mqtt1 : MqttClientConfiguration) : Validation[MqttClientConfiguration] = (willTopic, willMessage) match {
         case (Some(wte), Some(wme)) =>
             for {
                 wt <- wte(session)
@@ -40,16 +41,20 @@ case class ConnectionSettings(
             Failure("Both will topic and message must be defined")
     }
 
-    private[protocol] def configureMqtt(session : Session)(mqtt1 : MqttClientConfiguration) : Validation[MqttClientConfiguration] = {
+    private[protocol] def configureMqtt(session : Session)
+        (mqtt1 : MqttClientConfiguration) : Validation[MqttClientConfiguration] = {
         var mqtt = mqtt1
         mqtt = cleanSession.map(cs => mqtt.copy(cleanSession = cs)).getOrElse(mqtt)
 
         Success(mqtt).flatMap { mqtt =>
-            realize[String, MqttClientConfiguration](clientId){ (config, value) => config.copy(clientId = value) }(mqtt, session)
+            realize[String, MqttClientConfiguration](clientId) { (config, value) => config.copy(clientId = value)
+            }(mqtt, session)
         } flatMap { mqtt =>
-            realize[String, MqttClientConfiguration](userName){ (config, value) => config.copy(username = value) }(mqtt, session)
+            realize[String, MqttClientConfiguration](userName) { (config, value) => config.copy(username = value)
+            }(mqtt, session)
         } flatMap { mqtt =>
-            realize[String, MqttClientConfiguration](password){(config, value) => config.copy(password = value)}(mqtt, session)
+            realize[String, MqttClientConfiguration](password) { (config, value) => config.copy(password = value)
+            }(mqtt, session)
         } flatMap {
             configureWill(session)
         }

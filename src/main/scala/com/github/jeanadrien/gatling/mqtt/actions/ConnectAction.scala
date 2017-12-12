@@ -17,9 +17,9 @@ import scala.util.{Failure, Success}
   */
 class ConnectAction(
     mqttComponents : MqttComponents,
-    coreComponents : CoreComponents,
+    coreComponents     : CoreComponents,
     connectionSettings : ConnectionSettings,
-    val next : Action
+    val next           : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     import mqttComponents.system.dispatcher
@@ -35,7 +35,7 @@ class ConnectAction(
 
             // connect
             implicit val timeout = Timeout(1 minute) // TODO check how to configure this
-            val requestStartDate = nowMillis
+        val requestStartDate = nowMillis
             (mqtt ? MqttCommands.Connect).mapTo[MqttCommands].onComplete {
                 case Success(MqttCommands.ConnectAck) =>
                     val connectTiming = timings(requestStartDate)

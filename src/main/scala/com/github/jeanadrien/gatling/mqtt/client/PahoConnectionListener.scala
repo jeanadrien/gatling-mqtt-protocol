@@ -10,7 +10,7 @@ import org.eclipse.paho.client.mqttv3.{IMqttDeliveryToken, MqttCallback, MqttMes
 class PahoConnectionListener(actor : ActorRef) extends MqttCallback with LazyLogging {
     override def deliveryComplete(token : IMqttDeliveryToken) : Unit = {
         // nop
-   }
+    }
 
     override def messageArrived(
         topic : String, message : MqttMessage

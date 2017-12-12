@@ -1,9 +1,9 @@
 package com.github.jeanadrien.gatling.mqtt.actions
 
-import akka.actor.{ActorRef, Inbox}
+import akka.actor.ActorRef
 import akka.pattern.AskTimeoutException
 import akka.util.Timeout
-import com.github.jeanadrien.gatling.mqtt.client.{Callback, MqttCommands}
+import com.github.jeanadrien.gatling.mqtt.client.MqttCommands
 import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 import com.github.jeanadrien.gatling.mqtt.protocol.MqttComponents
 import io.gatling.commons.stats.{KO, OK}
@@ -11,7 +11,6 @@ import io.gatling.commons.util.ClockSingleton._
 import io.gatling.core.CoreComponents
 import io.gatling.core.action.Action
 import io.gatling.core.session._
-import org.fusesource.mqtt.client.{CallbackConnection, QoS}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
@@ -21,14 +20,14 @@ import scala.util.{Failure, Success}
   */
 class PublishAndWaitAction(
     mqttComponents : MqttComponents,
-    coreComponents : CoreComponents,
-    topic         : Expression[String],
-    payload       : Expression[Array[Byte]],
+    coreComponents  : CoreComponents,
+    topic           : Expression[String],
+    payload         : Expression[Array[Byte]],
     payloadFeedback : Array[Byte] => Array[Byte] => Boolean,
-    qos           : MqttQoS,
-    retain        : Boolean,
-    timeout       : FiniteDuration,
-    val next      : Action
+    qos             : MqttQoS,
+    retain          : Boolean,
+    timeout         : FiniteDuration,
+    val next        : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     import akka.pattern.ask
@@ -71,10 +70,6 @@ class PublishAndWaitAction(
                     None
                 )
 
-//                if (result.isFailure) {
-//                    listener ! CancelWaitForMessage(resolvedTopic, payloadCheck)
-//                }
-
                 next ! session
             case Failure(th) =>
                 val latencyTimings = timings(requestStartDate)
@@ -87,7 +82,8 @@ class PublishAndWaitAction(
                     None,
                     th match {
                         case t : AskTimeoutException =>
-                            logger.warn(s"${connectionId}: Wait for PUBLISH back from mqtt timed out on ${resolvedTopic}")
+                            logger
+                                .warn(s"${connectionId}: Wait for PUBLISH back from mqtt timed out on ${resolvedTopic}")
                             Some("Wait for PUBLISH timed out")
                         case t =>
                             logger

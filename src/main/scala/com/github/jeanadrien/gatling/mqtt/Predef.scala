@@ -18,7 +18,9 @@ object Predef {
 
     def subscribe(topic : Expression[String]) = SubscribeActionBuilder(topic)
 
-    def publish[T <% MqttPayload](topic : Expression[String], payload : Expression[T]) = PublishActionBuilder(topic, payload.map(_.toByteArray))
+    def publish[T <% MqttPayload](
+        topic : Expression[String], payload : Expression[T]
+    ) = PublishActionBuilder(topic, payload.map(_.toByteArray))
 
     def publishAndWait[T <% MqttPayload](
         topic : Expression[String], payload : Expression[T]

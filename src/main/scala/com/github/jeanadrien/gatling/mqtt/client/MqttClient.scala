@@ -28,28 +28,30 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
 
     protected def subscribe(topics : List[(String, MqttQoS)], replyTo : ActorRef) : Unit
 
-    protected def publish(topic : String, payload : Array[Byte], mqttQoS : MqttQoS, retain : Boolean, replyTo : ActorRef) : Unit
+    protected def publish(
+        topic : String, payload : Array[Byte], mqttQoS : MqttQoS, retain : Boolean, replyTo : ActorRef
+    ) : Unit
 
     protected def close() : Unit
 
-    private def addFeedbackListener(topic : String, listener : (FeedbackFunction, ActorRef)): Unit = {
+    private def addFeedbackListener(topic : String, listener : (FeedbackFunction, ActorRef)) : Unit = {
         feedbackListener = feedbackListener.get(topic) match {
             case Some(list : List[(FeedbackFunction, ActorRef)]) =>
-                feedbackListener + (topic -> (listener::list))
+                feedbackListener + (topic -> (listener :: list))
             case None =>
-                feedbackListener + (topic -> (listener::Nil))
+                feedbackListener + (topic -> (listener :: Nil))
         }
     }
 
-    protected def onPublish(topic : String, payload : Array[Byte]): Unit = {
+    protected def onPublish(topic : String, payload : Array[Byte]) : Unit = {
         logger.debug(s"Client ${gatlingMqttId} received (topic: $topic, payload size: ${payload.size}")
         feedbackListener = feedbackListener.get(topic) match {
             case Some(listeners) =>
-                val (matching, nonMatching) = listeners.partition { case(fn, _) =>
+                val (matching, nonMatching) = listeners.partition { case (fn, _) =>
                     fn(payload)
                 }
                 // fire matching listeners
-                matching.foreach { case(_, replyTo) =>
+                matching.foreach { case (_, replyTo) =>
                     replyTo ! FeedbackReceived
                 }
                 nonMatching match {
@@ -65,11 +67,11 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
 
     private def publishAndWait(
         topic : String,
-        payload : Array[Byte],
+        payload         : Array[Byte],
         payloadFeedback : FeedbackFunction,
-        qos : MqttQoS,
-        retain : Boolean,
-        replyTo : ActorRef
+        qos             : MqttQoS,
+        retain          : Boolean,
+        replyTo         : ActorRef
     ) = {
         implicit val timeout = Timeout(1 minute)
         self ? MqttCommands.Publish(
@@ -85,11 +87,11 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
         }
     }
 
-    private def waitForMessages(replyTo : ActorRef): Unit = {
+    private def waitForMessages(replyTo : ActorRef) : Unit = {
         if (feedbackListener.isEmpty) {
             replyTo ! WaitForMessagesDone
         } else {
-            waitForMessagesReceivedListeners = replyTo::waitForMessagesReceivedListeners
+            waitForMessagesReceivedListeners = replyTo :: waitForMessagesReceivedListeners
         }
     }
 
@@ -120,7 +122,7 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
         case WaitForMessages =>
             waitForMessages(sender())
         case _ =>
-            // nop
+        // nop
     }
 }
 
@@ -128,7 +130,7 @@ object MqttClient extends Settings with LazyLogging {
 
     type FeedbackFunction = Array[Byte] => Boolean
 
-    
+
     var clientInjection : (MqttClientConfiguration, String) => Props = { (configuration, gatlingClientId) =>
         val clientClass = settings.mqtt.client
         logger.info(s"Use MqttClient '$clientClass'")

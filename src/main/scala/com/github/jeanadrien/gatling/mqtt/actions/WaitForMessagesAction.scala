@@ -18,8 +18,8 @@ import scala.util.{Failure, Success}
 class WaitForMessagesAction(
     mqttComponents : MqttComponents,
     coreComponents : CoreComponents,
-    timeout : FiniteDuration,
-    val next : Action
+    timeout        : FiniteDuration,
+    val next       : Action
 ) extends MqttAction(mqttComponents, coreComponents) {
 
     import akka.pattern.ask

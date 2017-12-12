@@ -15,7 +15,9 @@ case class MqttComponents(
     mqttProtocol : MqttProtocol, system : ActorSystem
 ) extends ProtocolComponents with StrictLogging {
 
-    def mqttEngine(session : Session, connectionSettings : ConnectionSettings, gatlingMqttId : String) : Validation[ActorRef] = {
+    def mqttEngine(
+        session : Session, connectionSettings : ConnectionSettings, gatlingMqttId : String
+    ) : Validation[ActorRef] = {
         logger.debug(s"MqttComponents: new mqttEngine: ${gatlingMqttId}")
         mqttProtocol.configureMqtt(session).map { config =>
             // inject the selected engine

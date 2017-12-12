@@ -19,10 +19,11 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
 
     import context._
 
-    // FIXME: Timeout and feebackListener polution
     private var feedbackListener : Map[String, List[(FeedbackFunction, ActorRef)]] = Map()
 
     private var waitForMessagesReceivedListeners : List[ActorRef] = Nil
+
+    private var delayIncomingMessages : Boolean = false
 
     protected def connect(replyTo : ActorRef) : Unit
 
@@ -51,6 +52,9 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
                     fn(payload)
                 }
                 // fire matching listeners
+                if (matching.nonEmpty) {
+                    logger.debug(s"Client ${gatlingMqttId} : message on topic $topic matches ${matching.length} awaiting listener(s)")
+                }
                 matching.foreach { case (_, replyTo) =>
                     replyTo ! FeedbackReceived
                 }
@@ -74,6 +78,7 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
         replyTo         : ActorRef
     ) = {
         implicit val timeout = Timeout(1 minute)
+        delayIncomingMessages = true
         self ? MqttCommands.Publish(
             topic = topic,
             payload = payload,
@@ -81,8 +86,12 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
             retain = retain
         ) andThen {
             case Success(_) =>
-                addFeedbackListener(topic, (payloadFeedback, replyTo))
+                // Register listener
+                self ! PublishAckRegisterFeedback(
+                    topic, payloadFeedback, replyTo
+                )
             case Failure(th) =>
+                delayIncomingMessages = false
                 replyTo ! akka.actor.Status.Failure(th)
         }
     }
@@ -100,6 +109,11 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
         waitForMessagesReceivedListeners = Nil
     }
 
+    private def publishAckRegisterFeedback(topic : String, payloadFeedback : FeedbackFunction, listener : ActorRef): Unit = {
+        delayIncomingMessages = false
+        addFeedbackListener(topic, (payloadFeedback, listener))
+    }
+
     override def postStop() = {
         super.postStop()
         close()
@@ -114,10 +128,16 @@ abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLog
             publish(topic, payload, mqttQoS, retain, sender())
         case PublishAndWait(topic, payload, payloadFeedback, mqttQoS, retain) =>
             publishAndWait(topic, payload, payloadFeedback, mqttQoS, retain, sender())
-        case OnPublish(topic, payload) =>
-            onPublish(topic, payload)
-            if (feedbackListener.isEmpty) {
-                fireAllWaitForMessageListeners
+        case PublishAckRegisterFeedback(topic, payloadFeedback, listener) =>
+            publishAckRegisterFeedback(topic, payloadFeedback, listener)
+        case msg @ OnPublish(topic, payload) =>
+            if (delayIncomingMessages) {
+                system.scheduler.scheduleOnce(1 milliseconds, self, msg)
+            } else {
+                onPublish(topic, payload)
+                if (feedbackListener.isEmpty) {
+                    fireAllWaitForMessageListeners
+                }
             }
         case WaitForMessages =>
             waitForMessages(sender())

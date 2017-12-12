@@ -33,6 +33,16 @@ It is also possible to use the plugin on [Flood.io](https://flood.io/).
 Please refer to the ad-hoc [documentation](https://help.flood.io/advanced-configuration/custom-libraries) on how to
 add custom library to Flood IO.
 
+## Integration into a scala project
+
+_Gatling-MQTT-Protocol_ is available on Maven Central.
+ 
+It is possible to import Gatling and the _Gatling-MQTT-Protocol_ plugin into your scala project source using sbt and 
+the [Gatling SBT Plugin](https://gatling.io/docs/current/extensions/sbt_plugin/). 
+
+Check the [compatibility matrix](#compatibility). Ensure you're using the right version of scala, gatling and
+the plugin.
+
 ## Documentation
 
 ### Quickstart
@@ -190,9 +200,10 @@ Two implementations are packaged with the plugin:
 * `com.github.jeanadrien.gatling.mqtt.client.PahoMqttClient`
  
 Other custom clients can be implemented. They need to extend this 
- [`MqttClient`](src/main/scala/com/github/jeanadrien/gatling/mqtt/client/MqttClient.scala) abstract class, which in its turn extends _Actor_
+ [`MqttClient`](src/main/scala/com/github/jeanadrien/gatling/mqtt/client/MqttClient.scala) abstract class, which in 
+ its turn extends _Actor_
 
-It also possible to select which implementation to use programatically in the test code:
+It also possible to select which implementation to use programmatically in the test code:
 
 ```scala
 MqttClient.clientInjection = { config =>
@@ -205,8 +216,9 @@ MqttClient.clientInjection = { config =>
 Here is the _Gatling-MQTT-Protocol_ vs. _Gatling_ version compatibility table.
 Note that Gatling v2.1 is not supported.
 
-* [v1.0] is built with Gatling sources _v2.2.3_. 
-* [v1.1] is build with Gatling sources _v2.2.5_.
+* [v1.0] is built with Gatling sources _v2.2.3_ and scala _2.11_. 
+* [v1.1] is built with Gatling sources _v2.2.5_ and scala _2.11_.
+* [v1.2] is built with Galting sources _v2.3.0_ and scala _2.12_.
 
 ## Contributing
 

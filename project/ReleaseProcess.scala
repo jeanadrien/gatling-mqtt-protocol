@@ -27,8 +27,8 @@ object ReleaseProcess {
         tagRelease,
         runPublishSigned,
         setNextVersion,
-        commitNextVersion //,
-        //pushChanges
+        commitNextVersion,
+        pushChanges
     )
 
 }

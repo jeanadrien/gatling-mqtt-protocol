@@ -1,5 +1,6 @@
 package com.github.jeanadrien.gatling.mqtt.client
 
+import akka.actor.ActorRef
 import com.github.jeanadrien.gatling.mqtt.client.MqttClient.FeedbackFunction
 import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 
@@ -26,6 +27,10 @@ object MqttCommands {
 
     case class PublishAndWait(
         topic : String, payload : Array[Byte], payloadFeedback : FeedbackFunction, qos : MqttQoS, retain : Boolean
+    ) extends MqttCommands
+
+    case class PublishAckRegisterFeedback(
+        topic : String, payloadFeedback : FeedbackFunction, listener : ActorRef
     ) extends MqttCommands
 
     case object FeedbackReceived extends MqttCommands

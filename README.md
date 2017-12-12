@@ -26,7 +26,7 @@ $ sbt assembly
 2. Copy the generated _jar_ into the Gatling library directory
 
 ```bash
-$ cp target/scala-2.11/gatling-mqtt-protocol-assembly-{VERSION}.jar ${GATLING_HOME}/lib
+$ cp target/scala-2.12/gatling-mqtt-protocol-assembly-{VERSION}.jar ${GATLING_HOME}/lib
 ```
 
 It is also possible to use the plugin on [Flood.io](https://flood.io/). 

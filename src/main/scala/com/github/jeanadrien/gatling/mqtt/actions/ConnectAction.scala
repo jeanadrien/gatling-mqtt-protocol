@@ -63,6 +63,7 @@ class ConnectAction(
                         None,
                         Some(th.getMessage)
                     )
+                    next ! session.markAsFailed
             }
         }
     }

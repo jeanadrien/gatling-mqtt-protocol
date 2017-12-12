@@ -32,17 +32,17 @@ class WaitForMessagesAction(
         connectionId <- session("connectionId").validate[String]
     } yield {
         implicit val messageTimeout = Timeout(timeout)
-
-        (connection ? MqttCommands.WaitForMessages).mapTo[MqttCommands].andThen {
-            case _ =>
-                next ! session
-        } onComplete {
+        logger.debug(s"Wait for message action started... Timeout: ${timeout}")
+        (connection ? MqttCommands.WaitForMessages).mapTo[MqttCommands] onComplete {
             case Success(MqttCommands.WaitForMessagesDone) =>
                 logger.info(s"${connectionId} : Done waitForMessage.")
+                next ! session
             case Failure(t) if t.isInstanceOf[AskTimeoutException] =>
                 logger.warn("Wait for remaining messages timed out")
+                next ! session.markAsFailed
             case Failure(t) =>
                 logger.warn("Wait for remaining messages error:", t)
+                next ! session.markAsFailed
         }
     })
 }

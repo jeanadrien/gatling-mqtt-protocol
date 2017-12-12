@@ -67,6 +67,8 @@ class SubscribeAction(
                     None,
                     Some(th.getMessage)
                 )
+
+                next ! session
         }
     })
 

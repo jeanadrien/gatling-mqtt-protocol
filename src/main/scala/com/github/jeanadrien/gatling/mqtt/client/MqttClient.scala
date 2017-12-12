@@ -6,11 +6,18 @@ import com.github.jeanadrien.gatling.mqtt.client.MqttClient.FeedbackFunction
 import com.github.jeanadrien.gatling.mqtt.client.MqttCommands._
 import com.github.jeanadrien.gatling.mqtt.client.MqttQoS.MqttQoS
 import com.typesafe.scalalogging.LazyLogging
+import akka.pattern.ask
+import akka.util.Timeout
+
+import scala.util.{Failure, Success}
+import scala.concurrent.duration._
 
 /**
   *
   */
-abstract class MqttClient(gatlingMqttId : String) extends Actor with LazyLogging {
+abstract class MqttClient(val gatlingMqttId : String) extends Actor with LazyLogging {
+
+    import context._
 
     // FIXME: Timeout and feebackListener polution
     private var feedbackListener : Map[String, List[(FeedbackFunction, ActorRef)]] = Map()
@@ -64,14 +71,18 @@ abstract class MqttClient(gatlingMqttId : String) extends Actor with LazyLogging
         retain : Boolean,
         replyTo : ActorRef
     ) = {
-        addFeedbackListener(topic, (payloadFeedback, replyTo))
-
-        self ! MqttCommands.Publish(
+        implicit val timeout = Timeout(1 minute)
+        self ? MqttCommands.Publish(
             topic = topic,
             payload = payload,
             mqttQoS = qos,
             retain = retain
-        )
+        ) andThen {
+            case Success(_) =>
+                addFeedbackListener(topic, (payloadFeedback, replyTo))
+            case Failure(th) =>
+                replyTo ! akka.actor.Status.Failure(th)
+        }
     }
 
     private def waitForMessages(replyTo : ActorRef): Unit = {

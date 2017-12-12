@@ -95,6 +95,8 @@ class PublishAndWaitAction(
                             Some(t.getMessage)
                     }
                 )
+
+                next ! session
         }
     })
 }

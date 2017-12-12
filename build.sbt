@@ -1,13 +1,13 @@
-
-name := "gatling-mqtt-protocol"
-
 organization := "com.github.jeanadrien"
+name := "gatling-mqtt-protocol"
 
 scalaVersion := "2.11.8"
 
-version := "1.1-SNAPSHOT"
+licenses := Seq(
+    "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
+)
 
-homepage := Some(url("https://github.com/jeanadrien/evrythng-scala-sdk"))
+homepage := Some(url("https://github.com/jeanadrien/gatling-mqtt-protocol"))
 
 scmInfo := Some(
     ScmInfo(
@@ -25,6 +25,16 @@ developers := List(
     )
 )
 
+// publish setup
+publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+
+// dependencies
 libraryDependencies += "io.gatling" % "gatling-core" % "2.2.5" % "provided"
 libraryDependencies += "org.fusesource.mqtt-client" % "mqtt-client" % "1.14"
 libraryDependencies += "org.eclipse.paho" % "org.eclipse.paho.client.mqttv3" % "1.0.2"
@@ -36,4 +46,13 @@ libraryDependencies += "io.gatling"            % "gatling-test-framework"    % "
 assemblyOption in assembly := (assemblyOption in assembly).value
     .copy(includeScala = false)
 
+// gatling test
 enablePlugins(GatlingPlugin)
+
+// build settings
+pomIncludeRepository := { _ => false }
+publishMavenStyle := true
+publishArtifact in Test := false
+
+lazy val root = project.in(file("."))
+    .settings(releaseProcess := ReleaseProcess.process)

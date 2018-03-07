@@ -218,7 +218,9 @@ Note that Gatling v2.1 is not supported.
 
 * [v1.0] is built with Gatling sources _v2.2.3_ and scala _2.11_. 
 * [v1.1] is built with Gatling sources _v2.2.5_ and scala _2.11_.
-* [v1.2] is built with Galting sources _v2.3.0_ and scala _2.12_.
+* [v1.2] is built with Galting sources _v2.3.0_ and scala _2.12_. 
+    * It is compatible with Gatling _v2.3.1_ bundle.
+* [master] is built with Galting sources _v2.3.1_ and scala _2.12_.
 
 ## Contributing
 

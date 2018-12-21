@@ -6,7 +6,12 @@ _Gatling-MQTT-Protocol_ is an unofficial plugin for the [Gatling](http://gatling
 The plugin provides gatling actions corresponding to the high level commands of the MQTT protocol.
  This allows better measurement of the MQTT server performance, and customizable scenario. 
  
-The client run by the plugin is _Fusesource_ MQTT Java [client](https://github.com/fusesource/mqtt-client)
+Two different mqtt clients can be used out of the box to run the tests:
+
+* [_Fusesource_ MQTT](https://github.com/fusesource/mqtt-client) Java client
+* [_Paho_](https://eclipse.org/paho/clients/java/) Java client
+
+Alternatively, it is possible to use a custom implementation of the _MqttClient_ actor. See below for details.
 
 ## Installation
 
@@ -21,12 +26,22 @@ $ sbt assembly
 2. Copy the generated _jar_ into the Gatling library directory
 
 ```bash
-$ cp target/scala-2.11/gatling-mqtt-protocol-assembly-{VERSION}.jar ${GATLING_HOME}/lib
+$ cp target/scala-2.12/gatling-mqtt-protocol-assembly-{VERSION}.jar ${GATLING_HOME}/lib
 ```
 
 It is also possible to use the plugin on [Flood.io](https://flood.io/). 
-Please refer to the ad-hoc [documentation](https://help.flood.io/docs/custom-libraries-on-grid-nodes) on how to
+Please refer to the ad-hoc [documentation](https://help.flood.io/advanced-configuration/custom-libraries) on how to
 add custom library to Flood IO.
+
+## Integration into a scala project
+
+_Gatling-MQTT-Protocol_ is available on Maven Central.
+ 
+It is possible to import Gatling and the _Gatling-MQTT-Protocol_ plugin into your scala project source using sbt and 
+the [Gatling SBT Plugin](https://gatling.io/docs/current/extensions/sbt_plugin/). 
+
+Check the [compatibility matrix](#compatibility). Ensure you're using the right version of scala, gatling and
+the plugin.
 
 ## Documentation
 
@@ -67,8 +82,8 @@ second. Therefore, the resulting performance test ramps up from 0 to 300k _PUBLI
 
 ### MQTT Protocol configuration
 
-These options are configurable using _method chaining_ on the `mqtt` object. They are wrappers around the _Fusesource MQTT-Client_ 
-options: https://github.com/fusesource/mqtt-client#controlling-mqtt-options. 
+These options are configurable using _method chaining_ on the `mqtt` object. They are based on the _Fusesource MQTT-Client_ 
+available options: https://github.com/fusesource/mqtt-client#controlling-mqtt-options. 
 
 * `host(host: Expression[String])`
 * `clientId(clientId: Expression[String])` : Default is a random String, and it is probably a good choice in the context
@@ -87,11 +102,11 @@ options: https://github.com/fusesource/mqtt-client#controlling-mqtt-options.
 * `reconnectDelay(reconnectDelay: Long)`
 * `reconnectDelayMax(reconnectDelayMax: Long)`
 * `reconnectBackOffMultiplier(reconnectBackOffMultiplier: Double)`
-* `receiveBufferSize(receiveBufferSize: Int)`
-* `sendBufferSize(sendBufferSize: Int)`
-* `trafficClass(trafficClass: Int)`
-* `maxReadRate(maxReadRate: Int)`
-* `maxWriteRate(maxWriteRate: Int)`
+* `receiveBufferSize(receiveBufferSize: Int)` _Fusesource client only_
+* `sendBufferSize(sendBufferSize: Int)` _Fusesource client only_
+* `trafficClass(trafficClass: Int)` _Fusesource client only_
+* `maxReadRate(maxReadRate: Int)` _Fusesource client only_
+* `maxWriteRate(maxWriteRate: Int)` _Fusesource client only_
 
 ### Scenario actions
 
@@ -140,7 +155,7 @@ The `subscribe` action provides the following MQTT options using _method chainin
 * `qosExactlyOnce` : Ask for a _QoS_ of 2 (exactly once) for the subscribed topic.
 
 
-#### Publish, publishAndWait, publishAndMeasure options
+#### Publish and publishAndWait options
 
 The `publish`, `publishAndWait` and `publishAndMeasure` actions provide the following options using _method chaining_
 
@@ -149,8 +164,8 @@ The `publish`, `publishAndWait` and `publishAndMeasure` actions provide the foll
 * `qosExactlyOnce` : Publish with a _QoS_ of 2 (exactly once).
 * `retain(newRetain : Boolean)` : Set the retain flag of the _PUBLISH_ command. Default: false.
 
-Additionally `publishAndWait` and `publishAndMeasure` provides useful options to define how to _validate_ the
-feedback notification received from the server.
+Additionally `publishAndwait` provides useful options to define how to _validate_ the
+feedback notification received from the server :
 
 * `payloadFeedback(fn : Array[Byte] => Array[Byte] => Boolean)` : Define the comparison function to use when notifications
 are received on the subscribed topic. The default function compares each byte of the payload.
@@ -169,18 +184,43 @@ retried, and a single _connect_ action can potentially lead to several _KO_ requ
 * `subscribe` : Time to get the _SUBACK_ message back from the server
 * `publish` : Time to perform the full _PUBLISH_ negotiation, the amount of commands necessary depends of the selected _QoS_. 
 * `publishAndWait` : Time to perform the publish and receive the notification on the topic. Upper bound is the configured _timeout_
-* `publishAndMeasure` : Time to perform the publish and receive the notification on the topic. Upper bound is the configured _timeout_
 
 ## Examples
 
 You can find Simulation examples in the [test directory](src/test/scala)
+
+## Client injection
+
+_gatling-mqtt-protocol_ uses Typesafe config library for configuration mechanism. 
+The setting key `mqtt.client` defines the class name of the `MqttClient` implementation.
+
+Two implementations are packaged with the plugin:
+
+* `com.github.jeanadrien.gatling.mqtt.client.FuseSourceMqttClient`
+* `com.github.jeanadrien.gatling.mqtt.client.PahoMqttClient`
+ 
+Other custom clients can be implemented. They need to extend this 
+ [`MqttClient`](src/main/scala/com/github/jeanadrien/gatling/mqtt/client/MqttClient.scala) abstract class, which in 
+ its turn extends _Actor_
+
+It also possible to select which implementation to use programmatically in the test code:
+
+```scala
+MqttClient.clientInjection = { config =>
+    Props(new PahoMqttClient(config))
+}
+```
 
 ## Compatibility
 
 Here is the _Gatling-MQTT-Protocol_ vs. _Gatling_ version compatibility table.
 Note that Gatling v2.1 is not supported.
 
-* [v1.0] is built with Gatling sources _v2.2.3_. 
+* [v1.0] is built with Gatling sources _v2.2.3_ and scala _2.11_. 
+* [v1.1] is built with Gatling sources _v2.2.5_ and scala _2.11_.
+* [v1.2] is built with Galting sources _v2.3.0_ and scala _2.12_. 
+    * It is compatible with Gatling _v2.3.1_ bundle.
+* [master] is built with Galting sources _v2.3.1_ and scala _2.12_.
 
 ## Contributing
 
@@ -188,17 +228,27 @@ Yes, please. Feature requests, bug reports, fixes, comments.
 
 Please use this [code style](gatling-mqtt-protocol-style.xml) file for IntelliJ
 
+## Testing
+
+It's possible to the the plugin and to run the example scenario with sbt:
+
+```
+$ sbt gatling:test
+```
+
 ## Acknowledgments
 
 _Gatling-MQTT-Protocol_ is a rewrite of [Gatling-MQTT](https://github.com/mnogu/gatling-mqtt) plugin. Another unofficial
  Gatling plugin which provides a MQTT connect+publish stress test, also based on _Fusesource_ MQTT Client. 
 
-In this extended version, we aim to increase flexibility in MQTT scenario and provide better performance metrics.
+In this extended version, we aim to increase flexibility in MQTT scenario, abstract the MQTT client 
+and provide better performance metrics.
 
 The protocol configuration DSL is widely compliant with by _Gatling-MQTT_
 
 * Thanks to [@verakruhliakova](https://github.com/verakruhliakova) who wrote the initial version for Gatling 2.1.
 * Thanks to [EVRYTHNG](https://evrythng.com/) for the use cases and the testing.
+* Thanks to the Gatling team for their feedback.
 
 ## License
 

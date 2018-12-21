@@ -18,18 +18,28 @@ object Predef {
 
     def subscribe(topic : Expression[String]) = SubscribeActionBuilder(topic)
 
-    def publish(topic : Expression[String], payload : Expression[Array[Byte]]) = PublishActionBuilder(topic, payload)
+    def publish[T <% MqttPayload](
+        topic : Expression[String], payload : Expression[T]
+    ) = PublishActionBuilder(topic, payload.map(_.toByteArray))
 
-    def publishAndWait(
-        topic : Expression[String], payload : Expression[Array[Byte]]
-    ) = PublishAndWaitActionBuilder(topic, payload)
-
-    def publishAndMeasure(
-        topic : Expression[String], payload : Expression[Array[Byte]]
-    ) = PublishAndMeasureActionBuilder(topic, payload)
+    def publishAndWait[T <% MqttPayload](
+        topic : Expression[String], payload : Expression[T]
+    ) = PublishAndWaitActionBuilder(topic, payload.map(_.toByteArray))
 
     def waitForMessages = WaitForMessagesActionBuilder
 
-    implicit def expressionOfStringToByteArray(in : Expression[String]) : Expression[Array[Byte]] =
+    def payload(in : Expression[String]) : Expression[Array[Byte]] =
         in.map(_.getBytes(StandardCharsets.UTF_8))
+
+    trait MqttPayload {
+        def toByteArray : Array[Byte]
+    }
+
+    implicit class StringMqttPayload(s : String) extends MqttPayload {
+        override def toByteArray = s.getBytes
+    }
+
+    implicit def byteArrayPayload(b : Array[Byte]) : MqttPayload = new MqttPayload {
+        override def toByteArray = b
+    }
 }

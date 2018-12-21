@@ -13,11 +13,11 @@ class MqttScenarioExample extends Simulation {
     val scn = scenario("MQTT Test")
         .exec(connect)
         .exec(subscribe("myTopic"))
-        .during(5 minutes) {
+        .during(30 seconds) {
             pace(1 second).exec(publish("myTopic", "myPayload"))
         }
 
     setUp(
-        scn.inject(rampUsers(50) over (2 minutes)))
+        scn.inject(rampUsers(10) over (10 seconds)))
         .protocols(mqttConf)
 }

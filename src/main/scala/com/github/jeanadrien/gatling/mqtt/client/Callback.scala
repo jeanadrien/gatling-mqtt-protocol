@@ -1,11 +1,11 @@
-package com.github.jeanadrien.gatling.mqtt.actions
+package com.github.jeanadrien.gatling.mqtt.client
 
 import com.typesafe.scalalogging.StrictLogging
 
 /**
   *
   */
-object Callback extends StrictLogging {
+private[client] object Callback extends StrictLogging {
 
     class HalfCallback[T](val onSuccessFn : T => Unit) {
 
